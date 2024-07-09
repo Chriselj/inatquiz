@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iNaturalist Quiz</title>
+</head>
+<body>
+    <h1>iNaturalist Quiz</h1>
+    <form id="configForm">
+        <label for="taxonomy">Taxonomy ID:</label>
+        <input type="text" id="taxonomy" name="taxonomy">
+        <label for="place">Place ID:</label>
+        <input type="text" id="place" name="place">
+        <button type="submit">Fetch Observation</button>
+    </form>
+    <img id="speciesImage" src="" alt="Species Image" style="width:300px;height:auto;">
+    <form id="quizForm" style="display:none;">
+        <label for="guess">Guess the species:</label>
+        <input type="text" id="guess" name="guess">
+        <button type="submit">Submit</button>
+    </form>
+    <p id="result"></p>
+
+    <script>
+        document.getElementById('configForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const taxonId = document.getElementById('taxonomy').value;
+            const placeId = document.getElementById('place').value;
+            const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&per_page=200`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const observation = data.results[Math.floor(Math.random() * data.results.length)];
+            const imageUrl = observation.photos[0].url;
+            const speciesName = observation.taxon.name;
+
+            document.getElementById('speciesImage').src = imageUrl;
+            document.getElementById('quizForm').style.display = 'block';
+            document.getElementById('correctSpecies').value = speciesName;
+        };
+
+        document.getElementById('quizForm').onsubmit = function(event) {
+            event.preventDefault();
+            const guess = document.getElementById('guess').value;
+            const correctSpecies = document.getElementById('correctSpecies').value;
+            const result = guess.toLowerCase() === correctSpecies.toLowerCase() ? "Correct!" : "Incorrect!";
+            document.getElementById('result').innerText = result;
+        };
+    </script>
+</body>
+</html>
