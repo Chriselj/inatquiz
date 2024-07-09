@@ -6,8 +6,15 @@
 <body>
     <h1>iNaturalist Quiz</h1>
     <form id="configForm">
+        <label for="category">Select a category:</label>
+        <select id="category" name="category">
+            <option value="48460">Birds</option> <!-- Taxon ID for Birds -->
+            <option value="47126">Plants</option> <!-- Taxon ID for Plants -->
+            <option value="47157">Butterflies</option> <!-- Taxon ID for Butterflies -->
+            <option value="40151">Mammals</option> <!-- Taxon ID for Mammals -->
+        </select>
         <label for="taxonomy">Taxonomy ID (optional):</label>
-        <input type="text" id="taxonomy" name="taxonomy">
+        <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
         <label for="place">Place ID (optional, default is Orange County, CA):</label>
         <input type="text" id="place" name="place" placeholder="97394">
         <button type="submit">Fetch Observation</button>
@@ -23,18 +30,20 @@
     <script>
         document.getElementById('configForm').onsubmit = async function(event) {
             event.preventDefault();
-            const taxonId = document.getElementById('taxonomy').value || '';
+            const selectedCategory = document.getElementById('category').value;
+            const customTaxonId = document.getElementById('taxonomy').value;
+            const taxonId = customTaxonId || selectedCategory;
             const placeId = document.getElementById('place').value || '97394'; // Default to Orange County, CA
             const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&per_page=200`;
             const response = await fetch(url);
             const data = await response.json();
             const observation = data.results[Math.floor(Math.random() * data.results.length)];
-            const imageUrl = observation.photos[0].url;
-            const speciesName = observation.taxon.name;
+            const photos = observation.photos;
+            const highResImage = photos.length > 0 ? photos[0].url.replace('square', 'original') : ''; // Replace 'square' with 'original' for high-res
 
-            document.getElementById('speciesImage').src = imageUrl;
+            document.getElementById('speciesImage').src = highResImage;
             document.getElementById('quizForm').style.display = 'block';
-            document.getElementById('quizForm').dataset.correctSpecies = speciesName;
+            document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
         };
 
         document.getElementById('quizForm').onsubmit = function(event) {
