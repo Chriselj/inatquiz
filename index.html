@@ -19,13 +19,15 @@
         <input type="text" id="place" name="place" placeholder="97394">
         <button type="submit">Fetch Observation</button>
     </form>
-    <img id="speciesImage" src="" alt="Species Image" style="width:300px;height:auto;">
+    <div id="imagesContainer" style="display:none;">
+        <img id="speciesImage1" src="" alt="Species Image 1" style="width:300px;height:auto;">
+        <img id="speciesImage2" src="" alt="Species Image 2" style="width:300px;height:auto;">
+        <img id="speciesImage3" src="" alt="Species Image 3" style="width:300px;height:auto;">
+    </div>
     <form id="quizForm" style="display:none;">
-        <label for="guess">Guess the species:</label>
-        <input type="text" id="guess" name="guess">
-        <button type="submit">Submit</button>
+        <button type="button" id="revealButton">Reveal Species Name</button>
     </form>
-    <p id="result"></p>
+    <p id="speciesName" style="display:none;"></p>
 
     <script>
         document.getElementById('configForm').onsubmit = async function(event) {
@@ -39,19 +41,21 @@
             const data = await response.json();
             const observation = data.results[Math.floor(Math.random() * data.results.length)];
             const photos = observation.photos;
-            const highResImage = photos.length > 0 ? photos[0].url.replace('square', 'original') : ''; // Replace 'square' with 'original' for high-res
+            const highResImages = photos.slice(0, 3).map(photo => photo.url.replace('square', 'original')); // Get up to 3 high-res images
 
-            document.getElementById('speciesImage').src = highResImage;
+            if (highResImages[0]) document.getElementById('speciesImage1').src = highResImages[0];
+            if (highResImages[1]) document.getElementById('speciesImage2').src = highResImages[1];
+            if (highResImages[2]) document.getElementById('speciesImage3').src = highResImages[2];
+            
+            document.getElementById('imagesContainer').style.display = 'block';
             document.getElementById('quizForm').style.display = 'block';
             document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
         };
 
-        document.getElementById('quizForm').onsubmit = function(event) {
-            event.preventDefault();
-            const guess = document.getElementById('guess').value;
+        document.getElementById('revealButton').onclick = function() {
             const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-            const result = guess.toLowerCase() === correctSpecies.toLowerCase() ? "Correct!" : "Incorrect!";
-            document.getElementById('result').innerText = result;
+            document.getElementById('speciesName').innerText = `Species Name: ${correctSpecies}`;
+            document.getElementById('speciesName').style.display = 'block';
         };
     </script>
 </body>
