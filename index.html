@@ -10,7 +10,7 @@
         <select id="category" name="category">
             <option value="48460">Birds</option> <!-- Taxon ID for Birds -->
             <option value="47126">Plants</option> <!-- Taxon ID for Plants -->
-            <option value="47157">Butterflies</option> <!-- Taxon ID for Butterflies -->
+            <option value="47224">Butterflies</option> <!-- Taxon ID for Butterflies -->
             <option value="40151">Mammals</option> <!-- Taxon ID for Mammals -->
         </select>
         <label for="taxonomy">Taxonomy ID (optional):</label>
@@ -40,12 +40,17 @@
             const response = await fetch(url);
             const data = await response.json();
             const observation = data.results[Math.floor(Math.random() * data.results.length)];
-            const photos = observation.photos;
-            const highResImages = photos.slice(0, 3).map(photo => photo.url.replace('square', 'original')); // Get up to 3 high-res images
+            const speciesId = observation.taxon.id;
 
-            if (highResImages[0]) document.getElementById('speciesImage1').src = highResImages[0];
-            if (highResImages[1]) document.getElementById('speciesImage2').src = highResImages[1];
-            if (highResImages[2]) document.getElementById('speciesImage3').src = highResImages[2];
+            // Fetch additional images of the same species from different observations
+            const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&per_page=200`;
+            const speciesResponse = await fetch(speciesUrl);
+            const speciesData = await speciesResponse.json();
+            const speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => photo.url.replace('square', 'original'))).slice(0, 3);
+
+            if (speciesPhotos[0]) document.getElementById('speciesImage1').src = speciesPhotos[0];
+            if (speciesPhotos[1]) document.getElementById('speciesImage2').src = speciesPhotos[1];
+            if (speciesPhotos[2]) document.getElementById('speciesImage3').src = speciesPhotos[2];
             
             document.getElementById('imagesContainer').style.display = 'block';
             document.getElementById('quizForm').style.display = 'block';
