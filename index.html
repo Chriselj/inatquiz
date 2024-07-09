@@ -2,6 +2,24 @@
 <html>
 <head>
     <title>iNaturalist Quiz</title>
+    <style>
+        /* Simple loading bar styles */
+        #loadingBar {
+            width: 100%;
+            background-color: #f3f3f3;
+            border: 1px solid #ccc;
+            display: none;
+        }
+
+        #loadingBar div {
+            height: 30px;
+            width: 0;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <h1>iNaturalist Quiz</h1>
@@ -19,6 +37,9 @@
         <input type="text" id="place" name="place" placeholder="97394">
         <button type="submit">Fetch Observation</button>
     </form>
+    <div id="loadingBar">
+        <div id="loadingProgress">0%</div>
+    </div>
     <div id="imagesContainer" style="display:none;">
         <img id="speciesImage1" src="" alt="Species Image 1" style="width:300px;height:auto;">
         <img id="speciesImage2" src="" alt="Species Image 2" style="width:300px;height:auto;">
@@ -30,36 +51,57 @@
     <p id="speciesName" style="display:none;"></p>
 
     <script>
+        async function updateLoadingBar(progress) {
+            const loadingBar = document.getElementById('loadingBar');
+            const loadingProgress = document.getElementById('loadingProgress');
+            loadingBar.style.display = 'block';
+            loadingProgress.style.width = progress + '%';
+            loadingProgress.innerText = progress + '%';
+        }
+
         document.getElementById('configForm').onsubmit = async function(event) {
             event.preventDefault();
+            await updateLoadingBar(0);
             const selectedCategory = document.getElementById('category').value;
             const customTaxonId = document.getElementById('taxonomy').value;
             const taxonId = customTaxonId || selectedCategory;
             const placeId = document.getElementById('place').value || '97394'; // Default to Orange County, CA
             const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&per_page=200`;
+            
+            await updateLoadingBar(20);
             const response = await fetch(url);
             const data = await response.json();
             const observation = data.results[Math.floor(Math.random() * data.results.length)];
             const speciesId = observation.taxon.id;
 
+            await updateLoadingBar(40);
             // Fetch additional images of the same species from different observations
             const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&per_page=200`;
             const speciesResponse = await fetch(speciesUrl);
             const speciesData = await speciesResponse.json();
             const speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => photo.url.replace('square', 'original'))).slice(0, 3);
 
+            await updateLoadingBar(60);
             if (speciesPhotos[0]) document.getElementById('speciesImage1').src = speciesPhotos[0];
             if (speciesPhotos[1]) document.getElementById('speciesImage2').src = speciesPhotos[1];
             if (speciesPhotos[2]) document.getElementById('speciesImage3').src = speciesPhotos[2];
             
+            await updateLoadingBar(80);
             document.getElementById('imagesContainer').style.display = 'block';
             document.getElementById('quizForm').style.display = 'block';
             document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
+            document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
+            
+            await updateLoadingBar(100);
+            setTimeout(() => {
+                document.getElementById('loadingBar').style.display = 'none';
+            }, 500);
         };
 
         document.getElementById('revealButton').onclick = function() {
             const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-            document.getElementById('speciesName').innerText = `Species Name: ${correctSpecies}`;
+            const commonName = document.getElementById('quizForm').dataset.commonName;
+            document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}`;
             document.getElementById('speciesName').style.display = 'block';
         };
     </script>
