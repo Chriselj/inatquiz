@@ -94,7 +94,7 @@
 </head>
 <body>
     <h1>Plant and Animal Knowledge Test</h1>
-    <i>created by Irvine Ranch Conservancy's Monitoring and Research team as a staff and volunteer training tool.</i>
+    <i>created by Irvine Ranch Conservancy's monitoring team as a staff and volunteer training tool.</i>
     <br><br><br>
     <form id="configForm">
         <label for="category">Select a category:</label>
@@ -147,6 +147,13 @@
             loadingProgress.innerText = progress + '%';
         }
 
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
         document.getElementById('configForm').onsubmit = async function(event) {
             event.preventDefault();
             await updateLoadingBar(0);
@@ -159,7 +166,12 @@
             await updateLoadingBar(20);
             const response = await fetch(url);
             const data = await response.json();
-            const observation = data.results[Math.floor(Math.random() * data.results.length)];
+            let observations = data.results;
+
+            // Shuffle observations for better randomization
+            shuffleArray(observations);
+
+            const observation = observations[0];
             const speciesId = observation.taxon.id;
 
             await updateLoadingBar(40);
@@ -167,20 +179,27 @@
             const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
             const speciesResponse = await fetch(speciesUrl);
             const speciesData = await speciesResponse.json();
-            const speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
+            let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
                 url: photo.url.replace('square', 'original'),
                 user: obs.user.login
-            }))).slice(0, 3);
+            })));
+
+            // Shuffle photos for better randomization
+            shuffleArray(speciesPhotos);
+
+            speciesPhotos = speciesPhotos.slice(0, 3);
 
             await updateLoadingBar(60);
             
-            // Clear previous images
+            // Clear previous images and species name
             document.getElementById('speciesImage1').src = "";
             document.getElementById('credit1').innerText = "";
             document.getElementById('speciesImage2').src = "";
             document.getElementById('credit2').innerText = "";
             document.getElementById('speciesImage3').src = "";
             document.getElementById('credit3').innerText = "";
+            document.getElementById('speciesName').innerText = "";
+            document.getElementById('speciesName').style.display = 'none';
 
             // Display new images
             if (speciesPhotos[0]) {
@@ -230,7 +249,7 @@
         }
     </script>
     
-    <p class="attribution">
+        <p class="attribution">
         <i>Powered by </i><br> 
         <a href="https://www.inaturalist.org"><img src="https://static.inaturalist.org/wiki_page_attachments/1419-original.png" alt="iNaturalist"></a>
 	&nbsp&nbsp&nbsp&nbsp&nbsp
