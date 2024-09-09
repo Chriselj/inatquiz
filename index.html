@@ -147,9 +147,26 @@
     <form id="configForm">
         <label for="category">Select a category:</label>
         <select id="category" name="category">
-            <option value="3">Birds</option>
-            <option value="47126">Plants</option>
-            <option value="47224">Butterflies</option>
+	    <option value="">All Life</option>
+	    <optgroup label="Birds">
+            	<option value="3">All Birds</option>
+		<option value="71261">Hawks, Eagles, Kites and Allies</option>
+		<option value="7251">Perching Birds</option>
+		<option value="559248">New World Sparrows</option>
+		<option value="71349">New World Warblers</option>
+            </optgroup>
+	    <optgroup label="Plants">
+	    	<option value="47126">All Plants</option>
+		<option value="47124">Dicots</option>
+		<option value="47162">Grasses, Sedges, Cattails and Allies</option>
+	    </optgroup>
+	    <optgroup label="Butterflies">
+            	<option value="47224">All Butterflies</option>
+	    	<option value="58558">Blues</option>
+		<option value="47653">Skippers</option>
+		<option value="48508">Whites, Yellows, and Sulphurs</option>
+		<option value="47223">Swallowtails</option>
+	    </optgroup>
             <option value="40151">Mammals</option>
         </select>
         <br>
