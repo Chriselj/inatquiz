@@ -226,7 +226,7 @@
         const customTaxonId = document.getElementById('taxonomy').value;
         const taxonId = customTaxonId || selectedCategory;
         const placeId = document.getElementById('place').value || '183147'; // Default to Limestone Canyon Nature Preserve
-        const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
+        const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200&photo_license=cc-by,cc0`;
         
         await updateLoadingBar(20);
         const response = await fetch(url);
@@ -239,7 +239,7 @@
         const speciesId = observation.taxon.id;
 
         await updateLoadingBar(40);
-        const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
+        const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200&photo_license=cc-by,cc0`;
         const speciesResponse = await fetch(speciesUrl);
         const speciesData = await speciesResponse.json();
         let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
