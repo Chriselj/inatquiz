@@ -3,18 +3,61 @@
 <head>
     <title>Plant and Animal Knowledge Test</title>
     <style>
-        /* Simple loading bar styles */
+        /* General IRC-themed styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9f3;
+            color: #2e3b1f;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            color: #5c7633;
+        }
+
+        i {
+            color: #8b9b62;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input[type="text"], select {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #5c7633;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #486328;
+        }
+
+        /* Loading bar styles */
         #loadingBar {
             width: 100%;
-            background-color: #f3f3f3;
-            border: 1px solid #ccc;
+            background-color: #e0e5d9;
+            border: 1px solid #c8d1b8;
             display: none;
         }
 
         #loadingBar div {
             height: 30px;
             width: 0;
-            background-color: #4caf50;
+            background-color: #8b9b62;
             text-align: center;
             line-height: 30px;
             color: white;
@@ -30,6 +73,12 @@
             width: 300px;
             height: auto;
             cursor: pointer;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.05);
         }
 
         .attribution {
@@ -39,10 +88,10 @@
 
         .attribution img {
             width: 175px;
-            height: 50px;
+            height: auto;
         }
 
-        /* Styles for modal */
+        /* Modal styling */
         .modal {
             display: none;
             position: fixed;
@@ -52,9 +101,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0, 0, 0, 0.7);
         }
 
         .modal-content {
@@ -62,16 +109,6 @@
             display: block;
             width: 80%;
             max-width: 700px;
-        }
-
-        .modal-content, #caption {
-            animation-name: zoom;
-            animation-duration: 0.6s;
-        }
-
-        @keyframes zoom {
-            from {transform:scale(0)}
-            to {transform:scale(1)}
         }
 
         .close {
@@ -87,32 +124,48 @@
         .close:hover,
         .close:focus {
             color: #bbb;
-            text-decoration: none;
             cursor: pointer;
+        }
+
+        .quiz-form {
+            margin-top: 20px;
+        }
+
+        #speciesName {
+            font-size: 20px;
+            color: #5c7633;
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <h1>Plant and Animal Knowledge Test</h1>
-    <i>created by Irvine Ranch Conservancy's monitoring team as a staff and volunteer training tool.</i>
-    <br><br><br>
+    <i>Created by Irvine Ranch Conservancy's monitoring team for staff and volunteer training.</i>
+    <br><br>
+
     <form id="configForm">
         <label for="category">Select a category:</label>
         <select id="category" name="category">
-            <option value="3">Birds</option> <!-- Updated Taxon ID for Birds -->
-            <option value="47126">Plants</option> <!-- Taxon ID for Plants -->
-            <option value="47224">Butterflies</option> <!-- Taxon ID for Butterflies -->
-            <option value="40151">Mammals</option> <!-- Taxon ID for Mammals -->
+            <option value="3">Birds</option>
+            <option value="47126">Plants</option>
+            <option value="47224">Butterflies</option>
+            <option value="40151">Mammals</option>
         </select>
+        <br>
         <label for="taxonomy">Taxonomy ID (optional):</label>
         <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
-        <label for="place">Place ID (optional, default is Limestone Canyon Nature Preserve):</label>
+        <br>
+        <label for="place">Place ID (default is Limestone Canyon):</label>
         <input type="text" id="place" name="place" placeholder="183147">
+        <br><br>
         <button type="submit">Fetch Observation</button>
     </form>
+
     <div id="loadingBar">
         <div id="loadingProgress">0%</div>
     </div>
+
     <div id="imagesContainer" style="display:none;">
         <div class="image-container">
             <img id="speciesImage1" src="" alt="Species Image 1" onclick="showModal(this)">
@@ -127,9 +180,11 @@
             <p id="credit3"></p>
         </div>
     </div>
-    <form id="quizForm" style="display:none;">
+
+    <form id="quizForm" class="quiz-form" style="display:none;">
         <button type="button" id="revealButton">Reveal Species Name</button>
     </form>
+
     <p id="speciesName" style="display:none;"></p>
 
     <div id="myModal" class="modal">
@@ -147,84 +202,72 @@
             loadingProgress.innerText = progress + '%';
         }
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
+        document.getElementById('configForm').onsubmit = async function(event) {
+        event.preventDefault();
+        await updateLoadingBar(0);
+        const selectedCategory = document.getElementById('category').value;
+        const customTaxonId = document.getElementById('taxonomy').value;
+        const taxonId = customTaxonId || selectedCategory;
+        const placeId = document.getElementById('place').value || '183147'; // Default to Limestone Canyon Nature Preserve
+        const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
+        
+        await updateLoadingBar(20);
+        const response = await fetch(url);
+        const data = await response.json();
+        let observations = data.results;
+
+        shuffleArray(observations);
+
+        const observation = observations[0];
+        const speciesId = observation.taxon.id;
+
+        await updateLoadingBar(40);
+        const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
+        const speciesResponse = await fetch(speciesUrl);
+        const speciesData = await speciesResponse.json();
+        let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
+            url: photo.url.replace('square', 'original'),
+            user: obs.user.login,
+            observationId: obs.id // Include the observation ID
+        })));
+
+        shuffleArray(speciesPhotos);
+        speciesPhotos = speciesPhotos.slice(0, 3);
+
+        await updateLoadingBar(60);
+
+            document.getElementById('speciesImage1').src = "";
+        document.getElementById('credit1').innerText = "";
+        document.getElementById('speciesImage2').src = "";
+        document.getElementById('credit2').innerText = "";
+        document.getElementById('speciesImage3').src = "";
+        document.getElementById('credit3').innerText = "";
+        document.getElementById('speciesName').innerText = "";
+        document.getElementById('speciesName').style.display = 'none';
+
+        if (speciesPhotos[0]) {
+            document.getElementById('speciesImage1').src = speciesPhotos[0].url;
+            document.getElementById('credit1').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>`;
+        }
+        if (speciesPhotos[1]) {
+            document.getElementById('speciesImage2').src = speciesPhotos[1].url;
+            document.getElementById('credit2').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>`;
+        }
+        if (speciesPhotos[2]) {
+            document.getElementById('speciesImage3').src = speciesPhotos[2].url;
+            document.getElementById('credit3').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>`;
         }
 
-        document.getElementById('configForm').onsubmit = async function(event) {
-            event.preventDefault();
-            await updateLoadingBar(0);
-            const selectedCategory = document.getElementById('category').value;
-            const customTaxonId = document.getElementById('taxonomy').value;
-            const taxonId = customTaxonId || selectedCategory;
-            const placeId = document.getElementById('place').value || '183147'; // Default to Limestone Canyon Nature Preserve
-            const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
-            
-            await updateLoadingBar(20);
-            const response = await fetch(url);
-            const data = await response.json();
-            let observations = data.results;
+        await updateLoadingBar(80);
+        document.getElementById('imagesContainer').style.display = 'block';
+        document.getElementById('quizForm').style.display = 'block';
+        document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
+        document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
 
-            // Shuffle observations for better randomization
-            shuffleArray(observations);
-
-            const observation = observations[0];
-            const speciesId = observation.taxon.id;
-
-            await updateLoadingBar(40);
-            // Fetch additional images of the same species from different observations
-            const speciesUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200`;
-            const speciesResponse = await fetch(speciesUrl);
-            const speciesData = await speciesResponse.json();
-            let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
-                url: photo.url.replace('square', 'original'),
-                user: obs.user.login
-            })));
-
-            // Shuffle photos for better randomization
-            shuffleArray(speciesPhotos);
-
-            speciesPhotos = speciesPhotos.slice(0, 3);
-
-            await updateLoadingBar(60);
-            
-            // Clear previous images and species name
-            document.getElementById('speciesImage1').src = "";
-            document.getElementById('credit1').innerText = "";
-            document.getElementById('speciesImage2').src = "";
-            document.getElementById('credit2').innerText = "";
-            document.getElementById('speciesImage3').src = "";
-            document.getElementById('credit3').innerText = "";
-            document.getElementById('speciesName').innerText = "";
-            document.getElementById('speciesName').style.display = 'none';
-
-            // Display new images
-            if (speciesPhotos[0]) {
-                document.getElementById('speciesImage1').src = speciesPhotos[0].url;
-                document.getElementById('credit1').innerText = `Photo by: ${speciesPhotos[0].user}`;
-            }
-            if (speciesPhotos[1]) {
-                document.getElementById('speciesImage2').src = speciesPhotos[1].url;
-                document.getElementById('credit2').innerText = `Photo by: ${speciesPhotos[1].user}`;
-            }
-            if (speciesPhotos[2]) {
-                document.getElementById('speciesImage3').src = speciesPhotos[2].url;
-                document.getElementById('credit3').innerText = `Photo by: ${speciesPhotos[2].user}`;
-            }
-            
-            await updateLoadingBar(80);
-            document.getElementById('imagesContainer').style.display = 'block';
-            document.getElementById('quizForm').style.display = 'block';
-            document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
-            document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
-            
-            await updateLoadingBar(100);
-            setTimeout(() => {
-                document.getElementById('loadingBar').style.display = 'none';
-            }, 500);
+        await updateLoadingBar(100);
+        setTimeout(() => {
+            document.getElementById('loadingBar').style.display = 'none';
+        }, 500);
         };
 
         document.getElementById('revealButton').onclick = function() {
@@ -247,13 +290,19 @@
             const modal = document.getElementById("myModal");
             modal.style.display = "none";
         }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
     </script>
-    
-        <p class="attribution">
-        <i>Powered by </i><br> 
+
+    <p class="attribution">
+        <i>Powered by</i><br> 
         <a href="https://www.inaturalist.org"><img src="https://static.inaturalist.org/wiki_page_attachments/1419-original.png" alt="iNaturalist"></a>
-	&nbsp&nbsp&nbsp&nbsp&nbsp
-	<a href="https://www.irconservancy.org"><img src="https://www.irconservancy.org/wp-content/uploads/Irvine-Ranch-Conservancy.png" alt="Irvine Ranch Conservancy"></a>
+        <a href="https://www.irconservancy.org"><img src="https://www.irconservancy.org/wp-content/uploads/Irvine-Ranch-Conservancy.png" alt="Irvine Ranch Conservancy"></a>
     </p>
 </body>
 </html>
