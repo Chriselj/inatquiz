@@ -1,225 +1,229 @@
 <!DOCTYPE html>
 <html>
-<head>
+
+  <head>
     <title>Plant and Animal Knowledge Test</title>
     <style>
-        /* General IRC-themed styling */
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9f3;
-            color: #2e3b1f;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
+      /* General IRC-themed styling */
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f8f9f3;
+        color: #2e3b1f;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
 
-        h1 {
-            color: #5c7633;
-        }
+      h1 {
+        color: #5c7633;
+      }
 
-        i {
-            color: #8b9b62;
-        }
+      i {
+        color: #8b9b62;
+      }
 
-        label {
-            font-weight: bold;
-            margin-right: 10px;
-        }
+      label {
+        font-weight: bold;
+        margin-right: 10px;
+      }
 
-        input[type="text"], select {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
+      input[type="text"],
+      select {
+        padding: 8px;
+        margin: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
 
-        button {
-            padding: 10px 20px;
-            background-color: #5c7633;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+      button {
+        padding: 10px 20px;
+        background-color: #5c7633;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
 
-        button:hover {
-            background-color: #486328;
-        }
+      button:hover {
+        background-color: #486328;
+      }
 
-        /* Loading bar styles */
-        #loadingBar {
-            width: 100%;
-            background-color: #e0e5d9;
-            border: 1px solid #c8d1b8;
-            display: none;
-        }
+      /* Loading bar styles */
+      #loadingBar {
+        width: 100%;
+        background-color: #e0e5d9;
+        border: 1px solid #c8d1b8;
+        display: none;
+      }
 
-        #loadingBar div {
-            height: 30px;
-            width: 0;
-            background-color: #8b9b62;
-            text-align: center;
-            line-height: 30px;
-            color: white;
-        }
+      #loadingBar div {
+        height: 30px;
+        width: 0;
+        background-color: #8b9b62;
+        text-align: center;
+        line-height: 30px;
+        color: white;
+      }
 
-        .image-container {
-            display: inline-block;
-            text-align: center;
-            margin: 10px;
-        }
+      .image-container {
+        display: inline-block;
+        text-align: center;
+        margin: 10px;
+      }
 
-        .image-container img {
-            width: 300px;
-            height: auto;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: transform 0.3s ease;
-        }
+      .image-container img {
+        width: 300px;
+        height: auto;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: transform 0.3s ease;
+      }
 
-        .image-container img:hover {
-            transform: scale(1.05);
-        }
+      .image-container img:hover {
+        transform: scale(1.05);
+      }
 
-        .attribution {
-            text-align: center;
-            margin-top: 20px;
-        }
+      .attribution {
+        text-align: center;
+        margin-top: 20px;
+      }
 
-        .attribution img {
-            width: 175px;
-            height: auto;
-        }
+      .attribution img {
+        width: 175px;
+        height: auto;
+      }
 
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
+      /* Modal styling */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        padding-top: 60px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+      }
 
-        .modal-content {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 700px;
-        }
+      .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+      }
 
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
+      .close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+      }
 
-        .close:hover,
-        .close:focus {
-            color: #bbb;
-            cursor: pointer;
-        }
+      .close:hover,
+      .close:focus {
+        color: #bbb;
+        cursor: pointer;
+      }
 
-        .quiz-form {
-            margin-top: 20px;
-        }
+      .quiz-form {
+        margin-top: 20px;
+      }
 
-        #speciesName {
-            font-size: 20px;
-            color: #5c7633;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+      #speciesName {
+        font-size: 20px;
+        color: #5c7633;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+
     </style>
-</head>
-<body>
+  </head>
+
+  <body>
     <h1>Plant and Animal Knowledge Test</h1>
     <i>Created by Irvine Ranch Conservancy's monitoring team for staff and volunteer training.</i>
     <br><br>
 
     <form id="configForm">
-        <label for="category">Select a category:</label>
-        <select id="category" name="category">
-	    <option value="">All Life</option>
-	    <optgroup label="Birds">
-            	<option value="3">All Birds</option>
-		<option value="71261">Hawks, Eagles, Kites and Allies</option>
-		<option value="7251">Perching Birds</option>
-		<option value="559248">New World Sparrows</option>
-		<option value="71349">New World Warblers</option>
-            </optgroup>
-	    <optgroup label="Plants">
-	    	<option value="47126">All Plants</option>
-		<option value="47124">Dicots</option>
-		<option value="47162">Grasses, Sedges, Cattails and Allies</option>
-	    </optgroup>
-	    <optgroup label="Butterflies">
-            	<option value="47224">All Butterflies</option>
-	    	<option value="58558">Blues</option>
-		<option value="47653">Skippers</option>
-		<option value="48508">Whites, Yellows, and Sulphurs</option>
-		<option value="47223">Swallowtails</option>
-	    </optgroup>
-            <option value="40151">Mammals</option>
-        </select>
-        <br>
-        <label for="taxonomy">Taxonomy ID (optional):</label>
-        <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
-        <br>
-        <label for="place">Place ID (default is Limestone Canyon):</label>
-        <input type="text" id="place" name="place" placeholder="183147">
-        <br><br>
-        <button type="submit">Fetch Observation</button>
+      <label for="category">Select a category:</label>
+      <select id="category" name="category">
+        <option value="">All Life</option>
+        <optgroup label="Birds">
+          <option value="3">All Birds</option>
+          <option value="71261">Hawks, Eagles, Kites and Allies</option>
+          <option value="7251">Perching Birds</option>
+          <option value="559248">New World Sparrows</option>
+          <option value="71349">New World Warblers</option>
+        </optgroup>
+        <optgroup label="Plants">
+          <option value="47126">All Plants</option>
+          <option value="47124">Dicots</option>
+          <option value="47162">Grasses, Sedges, Cattails and Allies</option>
+        </optgroup>
+        <optgroup label="Butterflies">
+          <option value="47224">All Butterflies</option>
+          <option value="58558">Blues</option>
+          <option value="47653">Skippers</option>
+          <option value="48508">Whites, Yellows, and Sulphurs</option>
+          <option value="47223">Swallowtails</option>
+        </optgroup>
+        <option value="40151">Mammals</option>
+      </select>
+      <br>
+      <label for="taxonomy">Taxonomy ID (optional):</label>
+      <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
+      <br>
+      <label for="place">Place ID (default is Limestone Canyon):</label>
+      <input type="text" id="place" name="place" placeholder="183147">
+      <br><br>
+      <button type="submit">Fetch Observation</button>
     </form>
 
     <div id="loadingBar">
-        <div id="loadingProgress">0%</div>
+      <div id="loadingProgress">0%</div>
     </div>
 
     <div id="imagesContainer" style="display:none;">
-        <div class="image-container">
-            <img id="speciesImage1" src="" alt="Species Image 1" onclick="showModal(this)">
-            <p id="credit1"></p>
-        </div>
-        <div class="image-container">
-            <img id="speciesImage2" src="" alt="Species Image 2" onclick="showModal(this)">
-            <p id="credit2"></p>
-        </div>
-        <div class="image-container">
-            <img id="speciesImage3" src="" alt="Species Image 3" onclick="showModal(this)">
-            <p id="credit3"></p>
-        </div>
+      <div class="image-container">
+        <img id="speciesImage1" src="" alt="Species Image 1" onclick="showModal(this)">
+        <p id="credit1"></p>
+      </div>
+      <div class="image-container">
+        <img id="speciesImage2" src="" alt="Species Image 2" onclick="showModal(this)">
+        <p id="credit2"></p>
+      </div>
+      <div class="image-container">
+        <img id="speciesImage3" src="" alt="Species Image 3" onclick="showModal(this)">
+        <p id="credit3"></p>
+      </div>
     </div>
 
     <form id="quizForm" class="quiz-form" style="display:none;">
-        <button type="button" id="revealButton">Reveal Species Name</button>
+      <button type="button" id="revealButton">Reveal Species Name</button>
     </form>
 
     <p id="speciesName" style="display:none;"></p>
 
     <div id="myModal" class="modal">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <img class="modal-content" id="img01">
-        <div id="caption"></div>
+      <span class="close" onclick="closeModal()">&times;</span>
+      <img class="modal-content" id="img01">
+      <div id="caption"></div>
     </div>
 
     <script>
-        async function updateLoadingBar(progress) {
-            const loadingBar = document.getElementById('loadingBar');
-            const loadingProgress = document.getElementById('loadingProgress');
-            loadingBar.style.display = 'block';
-            loadingProgress.style.width = progress + '%';
-            loadingProgress.innerText = progress + '%';
-        }
+      async function updateLoadingBar(progress) {
+        const loadingBar = document.getElementById('loadingBar');
+        const loadingProgress = document.getElementById('loadingProgress');
+        loadingBar.style.display = 'block';
+        loadingProgress.style.width = progress + '%';
+        loadingProgress.innerText = progress + '%';
+      }
 
-        document.getElementById('configForm').onsubmit = async function(event) {
+      document.getElementById('configForm').onsubmit = async function(event) {
         event.preventDefault();
         await updateLoadingBar(0);
         const selectedCategory = document.getElementById('category').value;
@@ -227,7 +231,7 @@
         const taxonId = customTaxonId || selectedCategory;
         const placeId = document.getElementById('place').value || '183147'; // Default to Limestone Canyon Nature Preserve
         const url = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&per_page=200&photo_license=cc-by,cc0,cc-by-nc`;
-        
+
         await updateLoadingBar(20);
         const response = await fetch(url);
         const data = await response.json();
@@ -243,9 +247,9 @@
         const speciesResponse = await fetch(speciesUrl);
         const speciesData = await speciesResponse.json();
         let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
-            url: photo.url.replace('square', 'original'),
-            user: obs.user.login,
-            observationId: obs.id // Include the observation ID
+          url: photo.url.replace('square', 'original'),
+          user: obs.user.login,
+          observationId: obs.id // Include the observation ID
         })));
 
         shuffleArray(speciesPhotos);
@@ -253,7 +257,7 @@
 
         await updateLoadingBar(60);
 
-            document.getElementById('speciesImage1').src = "";
+        document.getElementById('speciesImage1').src = "";
         document.getElementById('credit1').innerText = "";
         document.getElementById('speciesImage2').src = "";
         document.getElementById('credit2').innerText = "";
@@ -263,16 +267,16 @@
         document.getElementById('speciesName').style.display = 'none';
 
         if (speciesPhotos[0]) {
-            document.getElementById('speciesImage1').src = speciesPhotos[0].url;
-            document.getElementById('credit1').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>`;
+          document.getElementById('speciesImage1').src = speciesPhotos[0].url;
+          document.getElementById('credit1').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>`;
         }
         if (speciesPhotos[1]) {
-            document.getElementById('speciesImage2').src = speciesPhotos[1].url;
-            document.getElementById('credit2').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>`;
+          document.getElementById('speciesImage2').src = speciesPhotos[1].url;
+          document.getElementById('credit2').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>`;
         }
         if (speciesPhotos[2]) {
-            document.getElementById('speciesImage3').src = speciesPhotos[2].url;
-            document.getElementById('credit3').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>`;
+          document.getElementById('speciesImage3').src = speciesPhotos[2].url;
+          document.getElementById('credit3').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>`;
         }
 
         await updateLoadingBar(80);
@@ -283,43 +287,45 @@
 
         await updateLoadingBar(100);
         setTimeout(() => {
-            document.getElementById('loadingBar').style.display = 'none';
+          document.getElementById('loadingBar').style.display = 'none';
         }, 500);
-        };
+      };
 
-        document.getElementById('revealButton').onclick = function() {
-            const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-            const commonName = document.getElementById('quizForm').dataset.commonName;
-            document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}`;
-            document.getElementById('speciesName').style.display = 'block';
-        };
+      document.getElementById('revealButton').onclick = function() {
+        const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
+        const commonName = document.getElementById('quizForm').dataset.commonName;
+        document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}`;
+        document.getElementById('speciesName').style.display = 'block';
+      };
 
-        function showModal(imgElement) {
-            const modal = document.getElementById("myModal");
-            const modalImg = document.getElementById("img01");
-            const captionText = document.getElementById("caption");
-            modal.style.display = "block";
-            modalImg.src = imgElement.src;
-            captionText.innerHTML = imgElement.nextElementSibling.innerHTML;
+      function showModal(imgElement) {
+        const modal = document.getElementById("myModal");
+        const modalImg = document.getElementById("img01");
+        const captionText = document.getElementById("caption");
+        modal.style.display = "block";
+        modalImg.src = imgElement.src;
+        captionText.innerHTML = imgElement.nextElementSibling.innerHTML;
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("myModal");
+        modal.style.display = "none";
+      }
+
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
         }
+      }
 
-        function closeModal() {
-            const modal = document.getElementById("myModal");
-            modal.style.display = "none";
-        }
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
     </script>
 
     <p class="attribution">
-        <i>Powered by</i><br> 
-        <a href="https://www.inaturalist.org"><img src="https://static.inaturalist.org/wiki_page_attachments/1419-original.png" alt="iNaturalist"></a>
-        <a href="https://www.irconservancy.org"><img src="https://www.irconservancy.org/wp-content/uploads/Irvine-Ranch-Conservancy.png" alt="Irvine Ranch Conservancy"></a>
+      <i>Powered by</i><br>
+      <a href="https://www.inaturalist.org"><img src="https://static.inaturalist.org/wiki_page_attachments/1419-original.png" alt="iNaturalist"></a>
+      <a href="https://www.irconservancy.org"><img src="https://www.irconservancy.org/wp-content/uploads/Irvine-Ranch-Conservancy.png" alt="Irvine Ranch Conservancy"></a>
     </p>
-</body>
+  </body>
+
 </html>
