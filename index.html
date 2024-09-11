@@ -177,8 +177,17 @@
       <label for="taxonomy">Taxonomy ID (optional):</label>
       <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
       <br>
-      <label for="place">Place ID (default is Limestone Canyon):</label>
-      <input type="text" id="place" name="place" placeholder="183147">
+      <label for="place">Place ID (default is Orange County, CA):</label>
+      <select id="place" name="place">
+        <optgroup label="Orange County, CA">
+          <option value="2738">All Orange County</option>
+          <option value="183147">Limestone Canyon Nature Preserve</option>
+          <option value="150574">Crystal Cove State Park</option>
+          <option value="8497">Irvine Open Space Preserve</option>
+          <option value="12345">Whiting Ranch Wilderness Park</option>
+        </optgroup>
+      </select>
+      <input type="text" id="customPlace" name="customPlace" placeholder="Optional custom Place ID">
       <br><br>
       <button type="submit">Fetch Observation</button>
     </form>
@@ -223,17 +232,33 @@
         loadingProgress.innerText = progress + '%';
       }
 
-      async function getRandomPageUrl(url, perPage = 200) {
+      function getRandomDateRange() {
+        const startYear = 2000; // Set a reasonable start year
+        const endYear = new Date().getFullYear(); // Current year
+
+        const randomYear = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
+        const randomMonth = Math.floor(Math.random() * 12) + 1; // Random month between 1 and 12
+        const randomDay = Math.floor(Math.random() * 28) + 1; // Random day between 1 and 28 (for simplicity)
+
+        const startDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')}`;
+        const endDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay + 1).padStart(2, '0')}`; // Short date range for better randomness
+
+        return {
+          startDate,
+          endDate
+        };
+      }
+
+      async function getRandomPageUrl(url, perPage = 50, maxPages = 50) {
         const response = await fetch(url + '&per_page=1'); // Fetch 1 result to get the total number of results
         const data = await response.json();
-        const totalResults = data.total_results; // Get total number of results
-        const totalPages = Math.ceil(totalResults / perPage); // Calculate the total number of pages
-        const randomPage = Math.floor(Math.random() * totalPages) + 1; // Pick a random page
+        const totalResults = data.total_results;
+        const totalPages = Math.min(Math.ceil(totalResults / perPage), maxPages);
 
-        console.log(`Total results: ${totalResults}, Total pages: ${totalPages}, Random page: ${randomPage}`);
-
-        return url + `&per_page=${perPage}&page=${randomPage}`; // Return the URL for a random page
+        const randomPage = Math.floor(Math.random() * totalPages) + 1; // Pick a random page within the limit
+        return url + `&per_page=${perPage}&page=${randomPage}`;
       }
+
 
       document.getElementById('configForm').onsubmit = async function(event) {
         event.preventDefault();
@@ -242,12 +267,16 @@
         const customTaxonId = document.getElementById('taxonomy').value;
         const taxonId = customTaxonId || selectedCategory;
         const placeId = document.getElementById('place').value || '183147'; // Default to Limestone Canyon Nature Preserve
-
+        // Get random date range
+        const {
+          startDate,
+          endDate
+        } = getRandomDateRange();
         // Construct base URL
-        let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc`;
+        let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}`;
 
         // Get random page URL
-        const randomPageUrl = await getRandomPageUrl(baseUrl);
+        const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
 
         // Fetch observations from a random page
         const response = await fetch(randomPageUrl);
