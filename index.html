@@ -300,7 +300,9 @@
           user: obs.user.login,
           observationId: obs.id // Include the observation ID
         })));
-
+        //shuffle photos so they dont repeat as often
+        shuffleArray(speciesPhotos);
+        //take the first three photos after shuffling
         speciesPhotos = speciesPhotos.slice(0, 3);
 
         await updateLoadingBar(60);
