@@ -146,7 +146,83 @@
     <i>Created by Irvine Ranch Conservancy's monitoring team for staff and volunteer training.</i>
     <br><br>
 
-    <!-- Remaining HTML code (unchanged) -->
+    <form id="configForm">
+      <label for="category">Select a category:</label>
+      <select id="category" name="category">
+        <option value="">All Life</option>
+        <optgroup label="Birds">
+          <option value="3">All Birds</option>
+          <option value="71261">Hawks, Eagles, Kites and Allies</option>
+          <option value="7251">Perching Birds</option>
+          <option value="559248">New World Sparrows</option>
+          <option value="71349">New World Warblers</option>
+        </optgroup>
+        <optgroup label="Plants">
+          <option value="47126">All Plants</option>
+          <option value="47124">Dicots</option>
+          <option value="47162">Grasses, Sedges, Cattails and Allies</option>
+        </optgroup>
+        <optgroup label="Butterflies">
+          <option value="47224">All Butterflies</option>
+          <option value="58558">Blues</option>
+          <option value="47653">Skippers</option>
+          <option value="48508">Whites, Yellows, and Sulphurs</option>
+          <option value="47223">Swallowtails</option>
+        </optgroup>
+        <option value="40151">Mammals</option>
+      </select>
+      <br>
+      <label for="taxonomy">Taxonomy ID (optional):</label>
+      <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
+      <br>
+      <label for="place">Place ID (default is Orange County, CA):</label>
+      <select id="place" name="place">
+        <optgroup label="Orange County, CA">
+          <option value="2738">All Orange County</option>
+          <option value="183147">Limestone Canyon Nature Preserve</option>
+          <option value="5692">Crystal Cove State Park</option>
+          <option value="186507">Laguna Coast Open Space</option>
+          <option value="178642">Whiting Ranch Wilderness Park</option>
+          <option value="4956">Weir Canyon</option>
+          <option value="189397">Bommer Canyon</option>
+          <option value="189398">Saddleback Wilderness</option>
+        </optgroup>
+      </select>
+      <input type="text" id="customPlace" name="customPlace" placeholder="Optional custom Place ID">
+      <br><br>
+      <button type="submit">Fetch Observation</button>
+    </form>
+
+    <div id="loadingBar">
+      <div id="loadingProgress">0%</div>
+    </div>
+
+    <div id="imagesContainer" style="display:none;">
+      <div class="image-container">
+        <img id="speciesImage1" src="" alt="Species Image 1" onclick="showModal(this)">
+        <p id="credit1"></p>
+      </div>
+      <div class="image-container">
+        <img id="speciesImage2" src="" alt="Species Image 2" onclick="showModal(this)">
+        <p id="credit2"></p>
+      </div>
+      <div class="image-container">
+        <img id="speciesImage3" src="" alt="Species Image 3" onclick="showModal(this)">
+        <p id="credit3"></p>
+      </div>
+    </div>
+
+    <form id="quizForm" class="quiz-form" style="display:none;">
+      <button type="button" id="revealButton">Reveal Species Name</button>
+    </form>
+
+    <p id="speciesName" style="display:none;"></p>
+
+    <div id="myModal" class="modal">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <img class="modal-content" id="img01">
+      <div id="caption"></div>
+    </div>
 
     <script>
       async function getAIExplanation(prompt) {
