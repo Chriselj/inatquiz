@@ -341,12 +341,23 @@
         }, 500);
       };
 
-      document.getElementById('revealButton').onclick = function() {
-        const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-        const commonName = document.getElementById('quizForm').dataset.commonName;
-        document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}`;
-        document.getElementById('speciesName').style.display = 'block';
-      };
+      document.getElementById('revealButton').onclick = async function () {
+  	const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
+  	const commonName = document.getElementById('quizForm').dataset.commonName;
+  
+ 	 // Display loading message while fetching explanation
+ 	 document.getElementById('speciesName').innerText = 'Fetching explanation...';
+ 	 document.getElementById('speciesName').style.display = 'block';
+
+ 	 // Prepare the prompt for the AI
+ 	 const prompt = `Provide an explanation for the species ${correctSpecies}, known as ${commonName}.`;
+
+ 	 // Fetch explanation from the AI
+ 	 const explanation = await getAIExplanation(prompt);
+  
+ 	 // Update the element with the AI-generated explanation
+ 	 document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}\nExplanation: 	${explanation}`;
+	};
 
       function showModal(imgElement) {
         const modal = document.getElementById("myModal");
