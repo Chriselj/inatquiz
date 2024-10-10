@@ -1,15 +1,38 @@
 const fetch = require('node-fetch');
 
 exports.handler = async function (event) {
-  // This will read the OpenAI API key from the environment variable set in Netlify
-  const apiKey = process.env.OPENAI_API_KEY; 
+  // Check if event.body is present and valid
+  if (!event.body) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing request body.' })
+    };
+  }
 
-  // Parse the prompt from the request body (sent from the frontend)
-  const { prompt } = JSON.parse(event.body);
+  let requestBody;
+  try {
+    requestBody = JSON.parse(event.body);
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Invalid JSON format.' })
+    };
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  const { prompt } = requestBody;
+
+  // Check if prompt is provided
+  if (!prompt) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing prompt in request body.' })
+    };
+  }
 
   try {
-    // Make a request to the OpenAI API
-    const response = await fetch('https://api.openai.com/v1/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -17,16 +40,29 @@ exports.handler = async function (event) {
       },
       body: JSON.stringify({
         model: 'gpt-4',
-        prompt: prompt,
+        messages: [
+          { "role": "system", "content": "You are a helpful assistant." },
+          { "role": "user", "content": prompt }
+        ],
         max_tokens: 150
       })
     });
 
     const data = await response.json();
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: data.choices[0].text })
-    };
+
+    if (response.ok) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: data.choices[0].message.content })
+      };
+    } else {
+      console.error('Error from OpenAI API:', data);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'OpenAI API error.', details: data })
+      };
+    }
+
   } catch (error) {
     console.error('Error:', error);
     return {
