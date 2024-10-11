@@ -10,7 +10,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Allows all origins
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
@@ -23,7 +23,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Allows all origins
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
@@ -40,7 +40,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Allows all origins
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
@@ -55,7 +55,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Allows all origins
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
@@ -89,7 +89,7 @@ exports.handler = async function (event) {
       return {
         statusCode: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*', // Allows all origins
+          'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
           'Access-Control-Allow-Headers': 'Content-Type',
           'Access-Control-Allow-Methods': 'POST, OPTIONS'
         },
@@ -100,7 +100,7 @@ exports.handler = async function (event) {
       return {
         statusCode: 500,
         headers: {
-          'Access-Control-Allow-Origin': '*', // Allows all origins
+          'Access-Control-Allow-Origin': 'https://chriselj.github.io',
           'Access-Control-Allow-Headers': 'Content-Type',
           'Access-Control-Allow-Methods': 'POST, OPTIONS'
         },
@@ -113,7 +113,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 500,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Allows all origins
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
