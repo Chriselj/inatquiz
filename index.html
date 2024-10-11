@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('speciesName').innerText = 'Fetching explanation...';
     document.getElementById('speciesName').style.display = 'block';
 
-    const prompt = `Provide an explanation for the species ${correctSpecies}, known as ${commonName}.`;
+    const prompt = `Provide a short list of identifiable features for ${correctSpecies}, known as ${commonName}.  Please also provide differences from similar looking species.`;
     const explanation = await getAIExplanation(prompt);
 
     document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}\nExplanation: ${explanation}`;
