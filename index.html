@@ -384,13 +384,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
-        const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", if we ignore spelling/punctuation?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  If the users guess seems correct simply reply that it is correct and explain what is unique about the species for identification.  If any inappropriate information (sexual, rude, offensive) is entered, decline to respond.`;
+        const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", if we ignore spelling/punctuation?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  If the users guess seems correct simply reply that it is correct and explain what is unique about the species for identification.  If any inappropriate information (sexual, rude, offensive) is entered, decline to respond.  you're response is going directly to the user who is trying to learn these plants and animals so be encouraging.`;
         const explanation = await getAIExplanation(prompt);
 
         document.getElementById('speciesName').innerHTML = `
-    		<strong>Common Name:</strong> ${commonName}<br>
-    		<strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
-    		<p>Explanation:</p> ${explanation}
+    	<strong>Common Name:</strong> ${commonName}<br>
+    	<strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
+    	<span>${explanation}</span>
+`;
 `;
     };
 });
