@@ -1,7 +1,8 @@
 const fetch = require('node-fetch');
 
 exports.handler = async function (event) {
-  // Check if event.body is present and valid
+  const apiKey = process.env.OPENAI_API_KEY;
+
   if (!event.body) {
     return {
       statusCode: 400,
@@ -20,10 +21,8 @@ exports.handler = async function (event) {
     };
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
   const { prompt } = requestBody;
 
-  // Check if prompt is provided
   if (!prompt) {
     return {
       statusCode: 400,
@@ -39,7 +38,7 @@ exports.handler = async function (event) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o-mini', // Updated model name
         messages: [
           { "role": "system", "content": "You are a helpful assistant." },
           { "role": "user", "content": prompt }
@@ -49,6 +48,7 @@ exports.handler = async function (event) {
     });
 
     const data = await response.json();
+    console.log('OpenAI API Response:', data);
 
     if (response.ok) {
       return {
