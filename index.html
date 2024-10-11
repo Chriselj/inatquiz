@@ -388,10 +388,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const explanation = await getAIExplanation(prompt);
 
         document.getElementById('speciesName').innerHTML = `
-    	<strong>Common Name:</strong> ${commonName}<br>
-    	<strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
-    	<p>${explanation}</p>
-`;
+        <strong>Common Name:</strong> ${commonName}<br>
+        <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
+        <div style="white-space: normal; max-width: 100%;"><strong>Explanation:</strong> ${explanation}</div>
+    `;
     };
 });
 
