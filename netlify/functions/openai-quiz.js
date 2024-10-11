@@ -1,33 +1,35 @@
 const fetch = require('node-fetch');
 
 exports.handler = async function (event) {
+  console.log('HTTP Method:', event.httpMethod);
   console.log('Event body:', event.body);
+
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('API Key loaded:', apiKey ? 'Yes' : 'No');
+
+  // Handle CORS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      },
+      body: JSON.stringify({ message: 'CORS preflight response' })
+    };
+  }
 
   if (!event.body) {
     console.error('Missing request body.');
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
       },
       body: JSON.stringify({ error: 'Missing request body.' })
-    };
-  }
-
-  if (event.httpMethod === 'OPTIONS') {
-    // Handle CORS preflight request
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': 'https://chriselj.github.io',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
-      body: JSON.stringify({ message: 'CORS preflight response' })
     };
   }
 
@@ -40,9 +42,9 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': 'https://chriselj.github.io',
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
       },
       body: JSON.stringify({ error: 'Invalid JSON format.' })
     };
@@ -55,9 +57,9 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
       },
       body: JSON.stringify({ error: 'Missing prompt in request body.' })
     };
@@ -89,9 +91,9 @@ exports.handler = async function (event) {
       return {
         statusCode: 200,
         headers: {
-          'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
+          'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
           'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
         },
         body: JSON.stringify({ message: data.choices[0].message.content })
       };
@@ -100,9 +102,9 @@ exports.handler = async function (event) {
       return {
         statusCode: 500,
         headers: {
-          'Access-Control-Allow-Origin': 'https://chriselj.github.io',
+          'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
           'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
         },
         body: JSON.stringify({ error: 'OpenAI API error.', details: data })
       };
@@ -113,9 +115,9 @@ exports.handler = async function (event) {
     return {
       statusCode: 500,
       headers: {
-        'Access-Control-Allow-Origin': 'https://chriselj.github.io', 
+        'Access-Control-Allow-Origin': 'https://chriselj.github.io', // Replace with your frontend URL
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
       },
       body: JSON.stringify({ error: 'Failed to fetch or parse response from OpenAI API.', details: error.message })
     };
