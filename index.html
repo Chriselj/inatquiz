@@ -377,11 +377,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('revealExplanationButton').style.display = 'block';
     };
 
-	const sanitizeAIResponse = (response) => {
-  	// Remove leading and trailing code block markers if present.
- 	 return response.replace(/^```html\s*|```$/g, '').trim();
-	};
-
     document.getElementById('revealExplanationButton').onclick = async function () {
         const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
         const commonName = document.getElementById('quizForm').dataset.commonName;
@@ -390,13 +385,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
         const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", (ignore spelling/punctuation)?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  Provide the response in HTML format for better readability`;
-        let explanation = await getAIExplanation(userGuess, correctSpecies, commonName);
+        const explanation = await getAIExplanation(prompt);
 
-    // Sanitize the response to remove any unexpected code block markers.
-    explanation = sanitizeAIResponse(explanation);
-
-    // Insert the explanation as HTML into the page.
-    document.getElementById('speciesName').innerHTML = `
+        document.getElementById('speciesName').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
         ${explanation}
