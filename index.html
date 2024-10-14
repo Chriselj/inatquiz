@@ -301,17 +301,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 	function clearQuizContent() {
-       	 document.getElementById('speciesName').innerHTML = '';
-       	 document.getElementById('revealExplanationButton').style.display = 'none';
-       	 document.getElementById('imagesContainer').style.display = 'none';
-       	 document.getElementById('speciesImage1').src = '';
-       	 document.getElementById('speciesImage2').src = '';
-       	 document.getElementById('speciesImage3').src = '';
-       	 document.getElementById('credit1').innerHTML = '';
-       	 document.getElementById('credit2').innerHTML = '';
-      	  document.getElementById('credit3').innerHTML = '';
-       	 document.getElementById('userGuess').value = ''; // Clear user input
-    	}
+    // Update to use aiSpeciesDetails instead of speciesName
+    const speciesDetailsElement = document.getElementById('aiSpeciesDetails');
+    
+    if (speciesDetailsElement) {
+        speciesDetailsElement.innerHTML = ''; // Clear the AI response content
+    }
+
+    document.getElementById('revealExplanationButton').style.display = 'none';
+    document.getElementById('imagesContainer').style.display = 'none';
+
+    // Clear image sources
+    document.getElementById('speciesImage1').src = '';
+    document.getElementById('speciesImage2').src = '';
+    document.getElementById('speciesImage3').src = '';
+
+    // Clear credits
+    document.getElementById('credit1').innerHTML = '';
+    document.getElementById('credit2').innerHTML = '';
+    document.getElementById('credit3').innerHTML = '';
+
+    // Clear user input
+    document.getElementById('userGuess').value = '';
+}
 
 	// Prevent Enter key from reloading the page
  	   document.getElementById('userGuess').addEventListener('keydown', function (event) {
