@@ -139,6 +139,36 @@
             font-weight: bold;
             margin-top: 20px;
         }
+.ai-response {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 600px;
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.ai-response p {
+    margin: 10px 0;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.ai-response ul {
+    margin-left: 20px;
+    padding-left: 20px;
+    list-style-type: disc;
+}
+
+.ai-response li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.ai-response strong {
+    color: #5c7633;
+}
 
     </style>
 </head>
@@ -232,6 +262,12 @@
         <img class="modal-content" id="img01">
         <div id="caption"></div>
     </div>
+
+    <div id="aiResponseContainer" class="ai-response" style="display: none;">
+    <p id="speciesName"></p>
+
+</div>
+
 </body>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -436,11 +472,12 @@ Make sure the response is clear, supportive, and educational. Format it for easy
 
 	
 
-        document.getElementById('speciesName').innerHTML = `
-        <strong>Common Name:</strong> ${commonName}<br>
-        <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
-        ${explanation}
-    `;
+        document.getElementById('aiResponseContainer').style.display = 'block';
+	document.getElementById('speciesName').innerHTML = `
+   	 <strong>Common Name:</strong> ${commonName}<br>
+   	 <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
+   	 ${explanation}
+`;
     };
 });
 
