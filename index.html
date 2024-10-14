@@ -385,9 +385,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
         const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", (ignore spelling/punctuation)?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  Provide the response in HTML format for better readability`;
-        const explanation = await getAIExplanation(prompt);
+        let explanation = await getAIExplanation(prompt);
 
-	explanation = explanation.replace(```html, '').trim();
+	// Inline cleaning of backticks and 'html' markers
+	explanation = explanation.replace(/^```html\s*|```$/g, '').trim();
+
+	
 
         document.getElementById('speciesName').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
