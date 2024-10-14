@@ -133,13 +133,43 @@
             margin-top: 20px;
         }
 
-        #speciesName {
+        #aiSpeciesDetails {
             font-size: 20px;
             color: #5c7633;
             font-weight: bold;
             margin-top: 20px;
         }
 
+        .ai-response {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 600px;
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .ai-response p {
+            margin: 10px 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .ai-response ul {
+            margin-left: 20px;
+            padding-left: 20px;
+            list-style-type: disc;
+        }
+
+        .ai-response li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .ai-response strong {
+            color: #5c7633;
+        }
     </style>
 </head>
 
@@ -214,245 +244,206 @@
         </div>
     </div>
 
-<form id="quizForm" class="quiz-form" style="display: none; text-align: center;">
-    <label for="userGuess">What species do you think this is?</label>
-    <input type="text" id="userGuess" name="userGuess" placeholder="Enter species name">
-    <br><br>
-    <button type="button" id="submitGuessButton">Submit Guess</button>
-    <br><br>
-    <div style="display: flex; justify-content: center;">
-        <button type="button" id="revealExplanationButton" style="display: none;">Reveal Explanation</button>
-    </div>
-</form>
-
-    <p id="speciesName" style="display: none;"></p>
+    <form id="quizForm" class="quiz-form" style="display: none; text-align: center;">
+        <label for="userGuess">What species do you think this is?</label>
+        <input type="text" id="userGuess" name="userGuess" placeholder="Enter species name">
+        <br><br>
+        <button type="button" id="submitGuessButton">Submit Guess</button>
+        <br><br>
+        <div style="display: flex; justify-content: center;">
+            <button type="button" id="revealExplanationButton" style="display: none;">Reveal Explanation</button>
+        </div>
+    </form>
 
     <div id="myModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="img01">
         <div id="caption"></div>
     </div>
-</body>
+
+    <!-- AI Response Container with Unique ID -->
+    <div id="aiSpeciesDetails" class="ai-response" style="display: none;"></div>
+
     <script>
-document.addEventListener('DOMContentLoaded', function () {
-	async function getAIExplanation(prompt) {
-        try {
-            console.log('Sending prompt:', prompt); // Log the prompt being sent
-            const response = await fetch('https://glistening-cobbler-0b0e14.netlify.app/.netlify/functions/openai-quiz', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ prompt: prompt })
+        document.addEventListener('DOMContentLoaded', function () {
+            async function getAIExplanation(prompt) {
+                try {
+                    console.log('Sending prompt:', prompt); // Log the prompt being sent
+                    const response = await fetch('https://glistening-cobbler-0b0e14.netlify.app/.netlify/functions/openai-quiz', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ prompt: prompt })
+                    });
+
+                    console.log('Response status:', response.status); // Log response status
+                    const data = await response.json();
+                    console.log('Response data:', data); // Log the response data
+                    return data.message;
+                } catch (error) {
+                    console.error('Error fetching AI response:', error);
+                    return 'Sorry, there was an issue fetching the explanation.';
+                }
+            }
+
+            async function updateLoadingBar(progress) {
+                const loadingBar = document.getElementById('loadingBar');
+                const loadingProgress = document.getElementById('loadingProgress');
+                loadingBar.style.display = 'block';
+                loadingProgress.style.width = progress + '%';
+                loadingProgress.innerText = progress + '%';
+            }
+
+            function clearQuizContent() {
+                const speciesDetailsElement = document.getElementById('aiSpeciesDetails');
+                if (speciesDetailsElement) {
+                    speciesDetailsElement.innerHTML = ''; // Clear the AI response content
+                }
+
+                document.getElementById('revealExplanationButton').style.display = 'none';
+                document.getElementById('imagesContainer').style.display = 'none';
+
+                // Clear image sources
+                document.getElementById('speciesImage1').src = '';
+                document.getElementById('speciesImage2').src = '';
+                document.getElementById('speciesImage3').src = '';
+
+                // Clear credits
+                document.getElementById('credit1').innerHTML = '';
+                document.getElementById('credit2').innerHTML = '';
+                document.getElementById('credit3').innerHTML = '';
+
+                // Clear user input
+                document.getElementById('userGuess').value = '';
+            }
+
+            // Prevent Enter key from reloading the page
+            document.getElementById('userGuess').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent page reload
+                    document.getElementById('submitGuessButton').click(); // Trigger guess submission
+                }
             });
 
-            console.log('Response status:', response.status); // Log response status
-            const data = await response.json();
-            console.log('Response data:', data); // Log the response data
-            return data.message;
-        } catch (error) {
-            console.error('Error fetching AI response:', error);
-            return 'Sorry, there was an issue fetching the explanation.';
-        }
-    }
+            function getRandomDateRange() {
+                const startYear = 2000;
+                const endYear = new Date().getFullYear();
+                const randomYear = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
+                const randomMonth = Math.floor(Math.random() * 12) + 1;
+                const randomDay = Math.floor(Math.random() * 28) + 1;
+                const startDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')}`;
+                const endDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay + 30).padStart(2, '0')}`;
+                return { startDate, endDate };
+            }
 
-    async function updateLoadingBar(progress) {
-        const loadingBar = document.getElementById('loadingBar');
-        const loadingProgress = document.getElementById('loadingProgress');
-        loadingBar.style.display = 'block';
-        loadingProgress.style.width = progress + '%';
-        loadingProgress.innerText = progress + '%';
-    }
+            async function getRandomPageUrl(url, perPage = 50, maxPages = 50) {
+                const response = await fetch(url + '&per_page=1');
+                const data = await response.json();
+                const totalResults = data.total_results;
+                const totalPages = Math.min(Math.ceil(totalResults / perPage), maxPages);
 
-	function clearQuizContent() {
-       	 document.getElementById('speciesName').innerHTML = '';
-       	 document.getElementById('revealExplanationButton').style.display = 'none';
-       	 document.getElementById('imagesContainer').style.display = 'none';
-       	 document.getElementById('speciesImage1').src = '';
-       	 document.getElementById('speciesImage2').src = '';
-       	 document.getElementById('speciesImage3').src = '';
-       	 document.getElementById('credit1').innerHTML = '';
-       	 document.getElementById('credit2').innerHTML = '';
-      	  document.getElementById('credit3').innerHTML = '';
-       	 document.getElementById('userGuess').value = ''; // Clear user input
-    	}
+                if (totalPages === 0) {
+                    return null;
+                }
 
-	// Prevent Enter key from reloading the page
- 	   document.getElementById('userGuess').addEventListener('keydown', function (event) {
-    	    if (event.key === 'Enter') {
-  	          event.preventDefault(); // Prevent page reload
-    	        document.getElementById('submitGuessButton').click(); // Trigger guess submission
-    	    }
-  	  });
+                const randomPage = Math.floor(Math.random() * totalPages) + 1;
+                return url + `&per_page=${perPage}&page=${randomPage}`;
+            }
 
-    function getRandomDateRange() {
-        const startYear = 2000;
-        const endYear = new Date().getFullYear();
-        const randomYear = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
-        const randomMonth = Math.floor(Math.random() * 12) + 1;
-        const randomDay = Math.floor(Math.random() * 28) + 1;
-        const startDate = ${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')};
-        const endDate = ${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay + 30).padStart(2, '0')};
-        return { startDate, endDate };
-    }
+            document.getElementById('configForm').onsubmit = async function (event) {
+                event.preventDefault();
+                clearQuizContent(); // Clear previous content
+                await updateLoadingBar(0);
 
-    async function getRandomPageUrl(url, perPage = 50, maxPages = 50) {
-        const response = await fetch(url + '&per_page=1');
-        const data = await response.json();
-        const totalResults = data.total_results;
-        const totalPages = Math.min(Math.ceil(totalResults / perPage), maxPages);
+                const selectedCategory = document.getElementById('category').value;
+                const customTaxonId = document.getElementById('taxonomy').value;
+                const taxonId = customTaxonId || selectedCategory;
+                const placeId = document.getElementById('place').value || '183147';
 
-        if (totalPages === 0) {
-            return null;
-        }
+                console.log('Category:', selectedCategory);
+                console.log('Taxonomy ID:', customTaxonId);
+                console.log('Taxon ID used:', taxonId);
+                console.log('Place ID:', placeId);
 
-        const randomPage = Math.floor(Math.random() * totalPages) + 1;
-        return url + &per_page=${perPage}&page=${randomPage};
-    }
+                const { startDate, endDate } = getRandomDateRange();
+                let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}`;
 
-    document.getElementById('configForm').onsubmit = async function (event) {
-        event.preventDefault();
-	clearQuizContent(); // Clear previous content
-        await updateLoadingBar(0);
+                const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
+                if (!randomPageUrl) {
+                    alert('No observations found for the selected criteria.');
+                    document.getElementById('loadingBar').style.display = 'none';
+                    return;
+                }
 
-        const selectedCategory = document.getElementById('category').value;
-        const customTaxonId = document.getElementById('taxonomy').value;
-        const taxonId = customTaxonId || selectedCategory;
-        const placeId = document.getElementById('place').value || '183147';
+                const response = await fetch(randomPageUrl);
+                const data = await response.json();
+                let observations = data.results;
 
-        console.log('Category:', selectedCategory);
-        console.log('Taxonomy ID:', customTaxonId);
-        console.log('Taxon ID used:', taxonId);
-        console.log('Place ID:', placeId);
+                if (observations.length === 0) {
+                    alert('No observations found for the selected criteria.');
+                    document.getElementById('loadingBar').style.display = 'none';
+                    return;
+                }
 
-        const { startDate, endDate } = getRandomDateRange();
-        let baseUrl = https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate};
+                shuffleArray(observations);
+                const observation = observations[0];
+                const speciesId = observation.taxon.id;
 
-        const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
-        if (!randomPageUrl) {
-            alert('No observations found for the selected criteria.');
-            document.getElementById('loadingBar').style.display = 'none';
-            return;
-        }
+                const speciesUrl = await getRandomPageUrl(`https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc`);
+                const speciesResponse = await fetch(speciesUrl);
+                const speciesData = await speciesResponse.json();
 
-        const response = await fetch(randomPageUrl);
-        const data = await response.json();
-        let observations = data.results;
+                let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
+                    url: photo.url.replace('square', 'original'),
+                    user: obs.user.login,
+                    observationId: obs.id
+                })));
 
-        if (observations.length === 0) {
-            alert('No observations found for the selected criteria.');
-            document.getElementById('loadingBar').style.display = 'none';
-            return;
-        }
+                shuffleArray(speciesPhotos);
+                speciesPhotos = speciesPhotos.slice(0, 3);
 
-        shuffleArray(observations);
-        const observation = observations[0];
-        const speciesId = observation.taxon.id;
+                await updateLoadingBar(60);
 
-        const speciesUrl = await getRandomPageUrl(https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc);
-        const speciesResponse = await fetch(speciesUrl);
-        const speciesData = await speciesResponse.json();
+                if (speciesPhotos.length > 0) {
+                    document.getElementById('speciesImage1').src = speciesPhotos[0].url;
+                    document.getElementById('credit1').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>`;
+                }
+                if (speciesPhotos[1]) {
+                    document.getElementById('speciesImage2').src = speciesPhotos[1].url;
+                    document.getElementById('credit2').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>`;
+                }
+                if (speciesPhotos[2]) {
+                    document.getElementById('speciesImage3').src = speciesPhotos[2].url;
+                    document.getElementById('credit3').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>`;
+                }
 
-        let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
-            url: photo.url.replace('square', 'original'),
-            user: obs.user.login,
-            observationId: obs.id
-        })));
+                await updateLoadingBar(80);
+                document.getElementById('imagesContainer').style.display = 'block';
+                document.getElementById('quizForm').style.display = 'block';
+                document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
+                document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
 
-        shuffleArray(speciesPhotos);
-        speciesPhotos = speciesPhotos.slice(0, 3);
+                await updateLoadingBar(100);
+                setTimeout(() => {
+                    document.getElementById('loadingBar').style.display = 'none';
+                }, 500);
+            };
 
-        await updateLoadingBar(60);
+            document.getElementById('submitGuessButton').onclick = function () {
+                const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
+                const commonName = document.getElementById('quizForm').dataset.commonName;
 
-        if (speciesPhotos.length > 0) {
-            document.getElementById('speciesImage1').src = speciesPhotos[0].url;
-            document.getElementById('credit1').innerHTML = Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>;
-        }
-        if (speciesPhotos[1]) {
-            document.getElementById('speciesImage2').src = speciesPhotos[1].url;
-            document.getElementById('credit2').innerHTML = Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>;
-        }
-        if (speciesPhotos[2]) {
-            document.getElementById('speciesImage3').src = speciesPhotos[2].url;
-            document.getElementById('credit3').innerHTML = Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>;
-        }
+                // Fetch the `aiSpeciesDetails` element and verify if it exists
+                const speciesDetailsElement = document.getElementById('aiSpeciesDetails');
+                if (!speciesDetailsElement) {
+                    console.error('Element with ID `aiSpeciesDetails` not found in the DOM');
+                    return; // Exit to avoid errors
+                }
 
-        await updateLoadingBar(80);
-        document.getElementById('imagesContainer').style.display = 'block';
-        document.getElementById('quizForm').style.display = 'block';
-        document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
-        document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
-
-        await updateLoadingBar(100);
-        setTimeout(() => {
-            document.getElementById('loadingBar').style.display = 'none';
-        }, 500);
-    };
-
-    document.getElementById('submitGuessButton').onclick = function () {
-        const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-        const commonName = document.getElementById('quizForm').dataset.commonName;
-
-        document.getElementById('speciesName').style.display = 'block';
-        document.getElementById('speciesName').innerText = Common Name: ${commonName}\nScientific Name: ${correctSpecies};
-
-        document.getElementById('revealExplanationButton').style.display = 'block';
-    };
-
-    document.getElementById('revealExplanationButton').onclick = async function () {
-        const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-        const commonName = document.getElementById('quizForm').dataset.commonName;
-        const userGuess = document.getElementById('userGuess').value.trim();
-
-        document.getElementById('speciesName').innerText = 'Fetching explanation...';
-
-        const prompt = The user guessed "${userGuess}". The correct species is:"${commonName}", (ignore spelling/punctuation errors).  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  If they are the same, highlight features that help identify this species.  Provide the response in HTML format for better readability;
-        let explanation = await getAIExplanation(prompt);
-
-	// Inline cleaning of backticks and 'html' markers
-	explanation = explanation.replace(/^
-html\s*|
-$/g, '').trim();
-
-	
-
-        document.getElementById('speciesName').innerHTML = 
-        <strong>Common Name:</strong> ${commonName}<br>
-        <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
-        ${explanation}
-    ;
-    };
-});
-
-function showModal(imgElement) {
-    const modal = document.getElementById("myModal");
-    const modalImg = document.getElementById("img01");
-    const captionText = document.getElementById("caption");
-    modal.style.display = "block";
-    modalImg.src = imgElement.src;
-    captionText.innerHTML = imgElement.nextElementSibling.innerHTML;
-}
-
-function closeModal() {
-    const modal = document.getElementById("myModal");
-    modal.style.display = "none";
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-    </script>
-
-    <p class="attribution">
-      <i>The explanations given above are AI generated responses.  While in general, responses should be helpful for learning identifications, there may be errors in the AI's descriptions.  To be fully certain on species characteristics, cross reference with published material.</i><br><br>
-      <i>Built by</i><br>
-      <a href="https://www.irconservancy.org"><img src="https://www.irconservancy.org/wp-content/uploads/Irvine-Ranch-Conservancy.png" alt="Irvine Ranch Conservancy"></a><br><br>
-      <i>Powered by</i><br>
-      <a href="https://www.inaturalist.org"><img src="https://static.inaturalist.org/wiki_page_attachments/1419-original.png" alt="iNaturalist"></a><br><br>
-    </p>
-  </body>
-
-</html>
+                // Display the species name in the `aiSpeciesDetails` element
+                speciesDetailsElement.style.display = 'block';
+                speciesDetailsElement.innerHTML = `
+                    <strong>Common Name:</strong> ${commonName}<br>
+                    <strong>Scientific Name:</strong> <i>${correctSpecies}</i>
+               
