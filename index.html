@@ -406,7 +406,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
-        const prompt = `The user guessed "${userGuess}". The correct species is:"${commonName}", (ignore spelling/punctuation errors).  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  If they are the same, highlight features that help identify this species.  Provide the response in HTML format for better readability`;
+        const prompt = `
+The user guessed: "${userGuess}". The correct species is: "${commonName}" (ignore minor spelling or punctuation errors). 
+
+Please do the following:
+1. **Start with Encouragement**: Begin by complimenting the user's effort, such as "Great guess!" or "Nice effort!".
+2. **Identify the User's Guess**:
+   - If the user's guess was **general** (e.g., "bug" or "bird"), mention that the guess was a good starting point but is too broad.
+   - If the guess was **specific but incorrect**, highlight that it was close or in the same group.
+3. **Provide Detailed Features of the Correct Species**:
+   - Use **bullet points** to provide identification features, such as:
+     - **Body Structure**: Describe the body shape or notable physical characteristics.
+     - **Color**: Mention the coloration and any notable patterns.
+     - **Behavior**: Describe typical behaviors or habitats.
+4. **Comparison with the User’s Guess**:
+   - Explain how the correct species differs from the user's guess.
+   - Provide examples that highlight specific identification features (e.g., “Unlike beetles, mantises have a distinctive elongated thorax”).
+5. **Encouragement and Next Steps**:
+   - End with an encouraging note to continue exploring and give a specific tip for the future, like "Next time, focus on leg positioning to help distinguish similar species."
+6. **Use HTML for Readability**:
+   - Format the response using **HTML tags** like `<strong>` for emphasis and `<ul>` for lists.
+
+Make sure the response is clear, supportive, and educational. Format it for easy readability using HTML.
+`;
         let explanation = await getAIExplanation(prompt);
 
 	// Inline cleaning of backticks and 'html' markers
