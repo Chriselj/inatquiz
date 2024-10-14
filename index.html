@@ -377,6 +377,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('revealExplanationButton').style.display = 'block';
     };
 
+	const sanitizeAIResponse = (response) => {
+  	// Remove leading and trailing code block markers if present.
+ 	 return response.replace(/^```html\s*|```$/g, '').trim();
+	};
+
     document.getElementById('revealExplanationButton').onclick = async function () {
         const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
         const commonName = document.getElementById('quizForm').dataset.commonName;
