@@ -385,9 +385,13 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
         const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", (ignore spelling/punctuation)?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  Provide the response in HTML format for better readability`;
-        const explanation = await getAIExplanation(prompt);
+        let explanation = await getAIExplanation(userGuess, correctSpecies, commonName);
 
-        document.getElementById('speciesName').innerHTML = `
+    // Sanitize the response to remove any unexpected code block markers.
+    explanation = sanitizeAIResponse(explanation);
+
+    // Insert the explanation as HTML into the page.
+    document.getElementById('speciesName').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
         ${explanation}
