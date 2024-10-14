@@ -264,6 +264,19 @@ document.addEventListener('DOMContentLoaded', function () {
         loadingProgress.innerText = progress + '%';
     }
 
+	function clearQuizContent() {
+       	 document.getElementById('speciesName').innerHTML = '';
+       	 document.getElementById('revealExplanationButton').style.display = 'none';
+       	 document.getElementById('imagesContainer').style.display = 'none';
+       	 document.getElementById('speciesImage1').src = '';
+       	 document.getElementById('speciesImage2').src = '';
+       	 document.getElementById('speciesImage3').src = '';
+       	 document.getElementById('credit1').innerHTML = '';
+       	 document.getElementById('credit2').innerHTML = '';
+      	  document.getElementById('credit3').innerHTML = '';
+       	 document.getElementById('userGuess').value = ''; // Clear user input
+    	}
+
 	// Prevent Enter key from reloading the page
  	   document.getElementById('userGuess').addEventListener('keydown', function (event) {
     	    if (event.key === 'Enter') {
@@ -299,6 +312,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('configForm').onsubmit = async function (event) {
         event.preventDefault();
+	clearQuizContent(); // Clear previous content
         await updateLoadingBar(0);
 
         const selectedCategory = document.getElementById('category').value;
