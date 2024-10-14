@@ -255,16 +255,16 @@
     </div>
 </form>
 
-    <p id="speciesName" style="display: none;"></p>
-
     <div id="myModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="img01">
         <div id="caption"></div>
     </div>
 
-    <div id="aiResponseContainer" class="ai-response" style="display: none;">
-    <p id="speciesName"></p>
+    <!-- AI Response Container with Unique ID -->
+	<div id="aiResponseContainer" class="ai-response" style="display: none;">
+    	<div id="aiSpeciesDetails"></div> <!-- Changed id to aiSpeciesDetails -->
+</div>
 
 </div>
 
@@ -473,10 +473,10 @@ Make sure the response is clear, supportive, and educational. Format it for easy
 	
 
         document.getElementById('aiResponseContainer').style.display = 'block';
-	document.getElementById('speciesName').innerHTML = `
-   	 <strong>Common Name:</strong> ${commonName}<br>
+	document.getElementById('aiSpeciesDetails').innerHTML = `
+    	<strong>Common Name:</strong> ${commonName}<br>
    	 <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
-   	 ${explanation}
+    	${explanation}
 `;
     };
 });
