@@ -442,8 +442,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const commonName = document.getElementById('quizForm').dataset.commonName;
 
     // Display the species name in the `speciesName` paragraph
-    document.getElementById('speciesName').style.display = 'block';
-    document.getElementById('speciesName').innerHTML = `
+    document.getElementById('aiSpeciesDetails').style.display = 'block';
+    document.getElementById('aiSpeciesDetails').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i>
     `;
