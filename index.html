@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
-        const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", (ignore spelling/punctuation)?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  Provide the response in HTML format for better readability`;
+        const prompt = `The user guessed "${userGuess}". The correct species is:"${commonName}", (ignore spelling/punctuation errors).  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  If they are the same, highlight features that help identify this species.  Provide the response in HTML format for better readability`;
         let explanation = await getAIExplanation(prompt);
 
 	// Inline cleaning of backticks and 'html' markers
@@ -445,6 +445,7 @@ function shuffleArray(array) {
     </script>
 
     <p class="attribution">
+      <i>The above is an AI generated response that is attempting to help aid in identification.  While in general, responses should be helpful, there is a chance of inaccurate details.  To be certain, cross reference with published material.</i><br><br>
       <i>Built by</i><br>
       <a href="https://www.irconservancy.org"><img src="https://www.irconservancy.org/wp-content/uploads/Irvine-Ranch-Conservancy.png" alt="Irvine Ranch Conservancy"></a><br><br>
       <i>Powered by</i><br>
