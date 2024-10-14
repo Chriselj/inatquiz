@@ -139,36 +139,6 @@
             font-weight: bold;
             margin-top: 20px;
         }
-.ai-response {
-    margin: 20px auto;
-    padding: 20px;
-    max-width: 600px;
-    background-color: #ffffff;
-    border: 1px solid #dcdcdc;
-    border-radius: 10px;
-    text-align: left;
-}
-
-.ai-response p {
-    margin: 10px 0;
-    line-height: 1.6;
-    font-size: 16px;
-}
-
-.ai-response ul {
-    margin-left: 20px;
-    padding-left: 20px;
-    list-style-type: disc;
-}
-
-.ai-response li {
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
-.ai-response strong {
-    color: #5c7633;
-}
 
     </style>
 </head>
@@ -255,19 +225,13 @@
     </div>
 </form>
 
+    <p id="speciesName" style="display: none;"></p>
+
     <div id="myModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="img01">
         <div id="caption"></div>
     </div>
-
-    <!-- AI Response Container with Unique ID -->
-	<div id="aiResponseContainer" class="ai-response" style="display: none;">
-    	<div id="aiSpeciesDetails"></div> <!-- Changed id to aiSpeciesDetails -->
-</div>
-
-</div>
-
 </body>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -301,29 +265,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 	function clearQuizContent() {
-    // Update to use aiSpeciesDetails instead of speciesName
-    const speciesDetailsElement = document.getElementById('aiSpeciesDetails');
-    
-    if (speciesDetailsElement) {
-        speciesDetailsElement.innerHTML = ''; // Clear the AI response content
-    }
-
-    document.getElementById('revealExplanationButton').style.display = 'none';
-    document.getElementById('imagesContainer').style.display = 'none';
-
-    // Clear image sources
-    document.getElementById('speciesImage1').src = '';
-    document.getElementById('speciesImage2').src = '';
-    document.getElementById('speciesImage3').src = '';
-
-    // Clear credits
-    document.getElementById('credit1').innerHTML = '';
-    document.getElementById('credit2').innerHTML = '';
-    document.getElementById('credit3').innerHTML = '';
-
-    // Clear user input
-    document.getElementById('userGuess').value = '';
-}
+       	 document.getElementById('speciesName').innerHTML = '';
+       	 document.getElementById('revealExplanationButton').style.display = 'none';
+       	 document.getElementById('imagesContainer').style.display = 'none';
+       	 document.getElementById('speciesImage1').src = '';
+       	 document.getElementById('speciesImage2').src = '';
+       	 document.getElementById('speciesImage3').src = '';
+       	 document.getElementById('credit1').innerHTML = '';
+       	 document.getElementById('credit2').innerHTML = '';
+      	  document.getElementById('credit3').innerHTML = '';
+       	 document.getElementById('userGuess').value = ''; // Clear user input
+    	}
 
 	// Prevent Enter key from reloading the page
  	   document.getElementById('userGuess').addEventListener('keydown', function (event) {
@@ -339,8 +291,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const randomYear = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
         const randomMonth = Math.floor(Math.random() * 12) + 1;
         const randomDay = Math.floor(Math.random() * 28) + 1;
-        const startDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')}`;
-        const endDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay + 30).padStart(2, '0')}`;
+        const startDate = ${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')};
+        const endDate = ${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay + 30).padStart(2, '0')};
         return { startDate, endDate };
     }
 
@@ -355,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const randomPage = Math.floor(Math.random() * totalPages) + 1;
-        return url + `&per_page=${perPage}&page=${randomPage}`;
+        return url + &per_page=${perPage}&page=${randomPage};
     }
 
     document.getElementById('configForm').onsubmit = async function (event) {
@@ -374,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Place ID:', placeId);
 
         const { startDate, endDate } = getRandomDateRange();
-        let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}`;
+        let baseUrl = https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate};
 
         const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
         if (!randomPageUrl) {
@@ -397,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const observation = observations[0];
         const speciesId = observation.taxon.id;
 
-        const speciesUrl = await getRandomPageUrl(`https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc`);
+        const speciesUrl = await getRandomPageUrl(https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc);
         const speciesResponse = await fetch(speciesUrl);
         const speciesData = await speciesResponse.json();
 
@@ -414,15 +366,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (speciesPhotos.length > 0) {
             document.getElementById('speciesImage1').src = speciesPhotos[0].url;
-            document.getElementById('credit1').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>`;
+            document.getElementById('credit1').innerHTML = Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>;
         }
         if (speciesPhotos[1]) {
             document.getElementById('speciesImage2').src = speciesPhotos[1].url;
-            document.getElementById('credit2').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>`;
+            document.getElementById('credit2').innerHTML = Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>;
         }
         if (speciesPhotos[2]) {
             document.getElementById('speciesImage3').src = speciesPhotos[2].url;
-            document.getElementById('credit3').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>`;
+            document.getElementById('credit3').innerHTML = Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>;
         }
 
         await updateLoadingBar(80);
@@ -438,66 +390,38 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     document.getElementById('submitGuessButton').onclick = function () {
-    const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-    const commonName = document.getElementById('quizForm').dataset.commonName;
+        const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
+        const commonName = document.getElementById('quizForm').dataset.commonName;
 
-    // Display the species name in the `speciesName` paragraph
-    document.getElementById('aiSpeciesDetails').style.display = 'block';
-    document.getElementById('aiSpeciesDetails').innerHTML = `
-        <strong>Common Name:</strong> ${commonName}<br>
-        <strong>Scientific Name:</strong> <i>${correctSpecies}</i>
-    `;
+        document.getElementById('speciesName').style.display = 'block';
+        document.getElementById('speciesName').innerText = Common Name: ${commonName}\nScientific Name: ${correctSpecies};
 
-    // Display the "Reveal Explanation" button
-    const revealExplanationButton = document.getElementById('revealExplanationButton');
-    if (revealExplanationButton) {
-        revealExplanationButton.style.display = 'block';
-    }
-};
+        document.getElementById('revealExplanationButton').style.display = 'block';
+    };
 
-document.getElementById('revealExplanationButton').onclick = async function () {
-    const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
-    const commonName = document.getElementById('quizForm').dataset.commonName;
-    const userGuess = document.getElementById('userGuess').value.trim();
+    document.getElementById('revealExplanationButton').onclick = async function () {
+        const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
+        const commonName = document.getElementById('quizForm').dataset.commonName;
+        const userGuess = document.getElementById('userGuess').value.trim();
 
-    // Update `speciesName` to show fetching message
-    document.getElementById('speciesName').innerText = 'Fetching explanation...';
+        document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
-    const prompt = `
-The user guessed: "${userGuess}". The correct species is: "${commonName}" (ignore minor spelling or punctuation errors). 
+        const prompt = The user guessed "${userGuess}". The correct species is:"${commonName}", (ignore spelling/punctuation errors).  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  If they are the same, highlight features that help identify this species.  Provide the response in HTML format for better readability;
+        let explanation = await getAIExplanation(prompt);
 
-Please do the following:
-1. **Start with Encouragement**: Begin by complimenting the user's effort, such as "Great guess!" or "Nice effort!".
-2. **Identify the User's Guess**:
-   - If the user's guess was **general** (e.g., "bug" or "bird"), mention that the guess was a good starting point but is too broad.
-   - If the guess was **specific but incorrect**, highlight that it was close or in the same group.
-3. **Provide Detailed Features of the Correct Species**:
-   - Use **bullet points** to provide identification features, such as:
-     - **Body Structure**: Describe the body shape or notable physical characteristics.
-     - **Color**: Mention the coloration and any notable patterns.
-     - **Behavior**: Describe typical behaviors or habitats.
-4. **Comparison with the User’s Guess**:
-   - Explain how the correct species differs from the user's guess.
-   - Provide examples that highlight specific identification features (e.g., “Unlike beetles, mantises have a distinctive elongated thorax”).
-5. **Encouragement and Next Steps**:
-   - End with an encouraging note to continue exploring and give a specific tip for the future, like "Next time, focus on leg positioning to help distinguish similar species."
-6. **Use HTML for Readability**:
-   - Format the response using **HTML tags** like <strong> for emphasis and <ul> for lists.
+	// Inline cleaning of backticks and 'html' markers
+	explanation = explanation.replace(/^
+html\s*|
+$/g, '').trim();
 
-Make sure the response is clear, supportive, and educational. Format it for easy readability using HTML.
-`;
-    let explanation = await getAIExplanation(prompt);
+	
 
-    // Inline cleaning of backticks and 'html' markers
-    explanation = explanation.replace(/^```html\s*|```$/g, '').trim();
-
-    // Display the explanation inside `speciesName`
-    document.getElementById('speciesName').innerHTML = `
+        document.getElementById('speciesName').innerHTML = 
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
         ${explanation}
-    `;
-};
+    ;
+    };
 });
 
 function showModal(imgElement) {
