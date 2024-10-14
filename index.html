@@ -384,13 +384,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
-        const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", (ignore spelling/punctuation)?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.`;
+        const prompt = `The user guessed "${userGuess}". Does this match the correct species,"${commonName}", (ignore spelling/punctuation)?  Explain the differences between the user's guess and the correct species if you suspect they are different, highlighting key identification features.  Provide the response in HTML format for better readability`;
         const explanation = await getAIExplanation(prompt);
 
         document.getElementById('speciesName').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
-        <div style="white-space: normal; max-width: 100%;"><strong>Explanation:</strong> ${explanation}</div>
+        ${explanation}
     `;
     };
 });
