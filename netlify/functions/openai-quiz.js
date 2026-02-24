@@ -81,6 +81,7 @@ exports.handler = async function (event) {
 4. Compare to user's guess.
 5. Conclude with a positive next-step tip.
 6. Decline inappropriate content.
+7. Keep the total response under 150 words. Be concise and focus only on key field identification features.
 
 Use HTML: <p>, <ul>/<li>, <strong>.`,
           },
