@@ -322,7 +322,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedCategory = document.getElementById('category').value;
         const customTaxonId = document.getElementById('taxonomy').value;
         const taxonId = customTaxonId || selectedCategory;
-        const placeId = document.getElementById('place').value || '183147';
+        const customPlaceId = document.getElementById('customPlace').value.trim();
+	const placeId = customPlaceId || document.getElementById('place').value || '183147';
 
         console.log('Category:', selectedCategory);
         console.log('Taxonomy ID:', customTaxonId);
