@@ -1,14 +1,26 @@
 const fetch = require('node-fetch');
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://chriselj.github.io',
+  'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || 'https://chriselj.github.io',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
 };
+
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const REQUEST_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS || 15000);
+const MAX_PROMPT_LENGTH = 2000;
+
+function jsonResponse(statusCode, body) {
+  return {
+    statusCode,
+    headers: CORS_HEADERS,
+    body: JSON.stringify(body),
+  };
+}
 
 exports.handler = async function (event) {
   console.log('HTTP Method:', event.httpMethod);
-  console.log('Event body:', event.body);
 
   // CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -16,64 +28,58 @@ exports.handler = async function (event) {
   }
 
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Method not allowed. Use POST.' }),
-    };
+    return jsonResponse(405, { error: 'Method not allowed. Use POST.' });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
-  console.log('API Key loaded:', apiKey ? 'Yes' : 'No');
   if (!apiKey) {
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Server misconfigured: missing OPENAI_API_KEY.' }),
-    };
+    return jsonResponse(500, { error: 'Server misconfigured: missing OPENAI_API_KEY.' });
   }
 
   if (!event.body) {
-    return {
-      statusCode: 400,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Missing request body.' }),
-    };
+    return jsonResponse(400, { error: 'Missing request body.' });
   }
 
   let requestBody;
   try {
     requestBody = JSON.parse(event.body);
   } catch (e) {
-    return {
-      statusCode: 400,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Invalid JSON format.' }),
-    };
+    return jsonResponse(400, { error: 'Invalid JSON format.' });
   }
 
-  const prompt = requestBody?.prompt;
-  if (!prompt || typeof prompt !== 'string') {
-    return {
-      statusCode: 400,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Missing prompt in request body.' }),
-    };
+  if (typeof requestBody?.prompt !== 'string') {
+    return jsonResponse(400, { error: 'Missing prompt in request body.' });
   }
+
+  const prompt = requestBody.prompt.trim();
+  if (!prompt) {
+    return jsonResponse(400, { error: 'Missing prompt in request body.' });
+  }
+
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    return jsonResponse(413, {
+      error: `Prompt too long. Maximum length is ${MAX_PROMPT_LENGTH} characters.`,
+    });
+  }
+
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  let timeoutId;
 
   try {
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an AI naturalist. Your goal is to provide friendly, educational feedback on species identification. Please follow these guidelines:
+    const openaiRes = await Promise.race([
+      fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        ...(controller ? { signal: controller.signal } : {}),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: OPENAI_MODEL,
+          messages: [
+            {
+              role: 'system',
+              content: `You are an AI naturalist. Your goal is to provide friendly, educational feedback on species identification. Please follow these guidelines:
 
 1. Encourage the user.
 2. If guess is close, highlight differences; if too general, explain how to narrow.
@@ -84,13 +90,23 @@ exports.handler = async function (event) {
 7. Keep the total response under 150 words. Be concise and focus only on key field identification features.
 
 Use HTML: <p>, <ul>/<li>, <strong>.`,
-          },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
+            },
+            { role: 'user', content: prompt },
+          ],
+          max_tokens: 350,
+          temperature: 0.7,
+        }),
       }),
-    });
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          if (controller) controller.abort();
+          const timeoutError = new Error(`Request to OpenAI timed out after ${REQUEST_TIMEOUT_MS}ms.`);
+          timeoutError.name = 'AbortError';
+          reject(timeoutError);
+        }, REQUEST_TIMEOUT_MS);
+      }),
+    ]);
+    clearTimeout(timeoutId);
 
     const raw = await openaiRes.text(); // read as text first
     let data;
@@ -109,44 +125,36 @@ Use HTML: <p>, <ul>/<li>, <strong>.`,
 
       console.error('OpenAI error:', openaiRes.status, message);
 
-      return {
-        statusCode: openaiRes.status, // <-- important: return the real status
-        headers: CORS_HEADERS,
-        body: JSON.stringify({
-          error: 'OpenAI API error',
-          status: openaiRes.status,
-          message,
-        }),
-      };
+      return jsonResponse(openaiRes.status, {
+        error: 'OpenAI API error',
+        status: openaiRes.status,
+        message,
+      });
     }
 
     const content = data?.choices?.[0]?.message?.content;
 
     if (typeof content !== 'string' || !content.trim()) {
       console.error('Unexpected OpenAI response shape:', data);
-      return {
-        statusCode: 502,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({
-          error: 'Unexpected OpenAI response shape',
-        }),
-      };
+      return jsonResponse(502, {
+        error: 'Unexpected OpenAI response shape',
+      });
     }
 
-    return {
-      statusCode: 200,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ message: content }),
-    };
+    return jsonResponse(200, { message: content });
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error.name === 'AbortError') {
+      return jsonResponse(504, {
+        error: `Request to OpenAI timed out after ${REQUEST_TIMEOUT_MS}ms.`,
+      });
+    }
+
     console.error('Function exception:', error);
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({
-        error: 'Server error calling OpenAI',
-        details: error.message,
-      }),
-    };
+    return jsonResponse(500, {
+      error: 'Server error calling OpenAI',
+      details: error.message,
+    });
   }
 };
