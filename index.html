@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 	function clearQuizContent() {
-       	 document.getElementById('speciesName').innerHTML = '';
+        	 document.getElementById('speciesName').innerHTML = '';
        	 document.getElementById('revealExplanationButton').style.display = 'none';
        	 document.getElementById('imagesContainer').style.display = 'none';
        	 document.getElementById('speciesImage1').src = '';
@@ -278,8 +278,51 @@ document.addEventListener('DOMContentLoaded', function () {
        	 document.getElementById('credit1').innerHTML = '';
        	 document.getElementById('credit2').innerHTML = '';
       	  document.getElementById('credit3').innerHTML = '';
-       	 document.getElementById('userGuess').value = ''; // Clear user input
-    	}
+        	 document.getElementById('userGuess').value = ''; // Clear user input
+     	}
+
+    function normalizeNativeStatus(establishmentMeans) {
+        const meansValue = establishmentMeans?.establishment_means || establishmentMeans;
+
+        if (meansValue === 'native') {
+            return 'Native';
+        }
+        if (meansValue === 'introduced') {
+            return 'Non-native';
+        }
+        if (meansValue === 'endemic') {
+            return 'Native (Endemic)';
+        }
+        if (typeof meansValue === 'string' && meansValue.length > 0) {
+            return meansValue.charAt(0).toUpperCase() + meansValue.slice(1);
+        }
+
+        return 'Unknown';
+    }
+
+    async function getNativeStatus(speciesId, placeId, observationTaxon) {
+
+        const observationStatus = normalizeNativeStatus(observationTaxon?.establishment_means);
+        if (observationStatus !== 'Unknown') {
+            return observationStatus;
+        }
+
+        try {
+            const response = await fetch(`https://api.inaturalist.org/v1/taxa/${speciesId}?place_id=${placeId}`);
+            const data = await response.json();
+            const taxon = data?.results?.[0];
+
+            if (!taxon) {
+                return 'Unknown';
+            }
+
+
+            return normalizeNativeStatus(taxon.establishment_means);
+        } catch (error) {
+            console.error('Error fetching native status:', error);
+            return 'Unknown';
+        }
+    }
 
 	// Prevent Enter key from reloading the page
  	   document.getElementById('userGuess').addEventListener('keydown', function (event) {
@@ -387,6 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('quizForm').style.display = 'block';
         document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
         document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
+        document.getElementById('quizForm').dataset.nativeStatus = await getNativeStatus(speciesId, placeId, observation.taxon);
 
         await updateLoadingBar(100);
         setTimeout(() => {
@@ -397,9 +441,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('submitGuessButton').onclick = function () {
         const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
         const commonName = document.getElementById('quizForm').dataset.commonName;
+        const nativeStatus = document.getElementById('quizForm').dataset.nativeStatus || 'Unknown';
 
         document.getElementById('speciesName').style.display = 'block';
-        document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}`;
+        document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}\nNative Status: ${nativeStatus}`;
 
         document.getElementById('revealExplanationButton').style.display = 'block';
     };
@@ -407,6 +452,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('revealExplanationButton').onclick = async function () {
         const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
         const commonName = document.getElementById('quizForm').dataset.commonName;
+        const nativeStatus = document.getElementById('quizForm').dataset.nativeStatus || 'Unknown';
         const userGuess = document.getElementById('userGuess').value.trim();
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
@@ -422,6 +468,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('speciesName').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
+        <strong>Native Status:</strong> ${nativeStatus}<br><br>
         ${explanation}
     `;
     };
