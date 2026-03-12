@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 	function clearQuizContent() {
-       	 document.getElementById('speciesName').innerHTML = '';
+        	 document.getElementById('speciesName').innerHTML = '';
        	 document.getElementById('revealExplanationButton').style.display = 'none';
        	 document.getElementById('imagesContainer').style.display = 'none';
        	 document.getElementById('speciesImage1').src = '';
@@ -278,8 +278,8 @@ document.addEventListener('DOMContentLoaded', function () {
        	 document.getElementById('credit1').innerHTML = '';
        	 document.getElementById('credit2').innerHTML = '';
       	  document.getElementById('credit3').innerHTML = '';
-       	 document.getElementById('userGuess').value = ''; // Clear user input
-    	}
+        	 document.getElementById('userGuess').value = ''; // Clear user input
+     	}
 
 	// Prevent Enter key from reloading the page
  	   document.getElementById('userGuess').addEventListener('keydown', function (event) {
@@ -331,7 +331,9 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Place ID:', placeId);
 
         const { startDate, endDate } = getRandomDateRange();
-        let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}`;
+        const shouldFetchNative = Math.random() < 0.9;
+        const nativeFilter = shouldFetchNative ? 'true' : 'false';
+        let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}&native=${nativeFilter}`;
 
         const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
         if (!randomPageUrl) {
@@ -387,6 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('quizForm').style.display = 'block';
         document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
         document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
+        document.getElementById('quizForm').dataset.nativeStatus = shouldFetchNative ? 'native' : 'introduced';
 
         await updateLoadingBar(100);
         setTimeout(() => {
@@ -397,9 +400,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('submitGuessButton').onclick = function () {
         const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
         const commonName = document.getElementById('quizForm').dataset.commonName;
+        const nativeStatus = document.getElementById('quizForm').dataset.nativeStatus || 'native';
+        const introducedLabel = nativeStatus === 'introduced' ? '\nIntroduced species' : '';
 
         document.getElementById('speciesName').style.display = 'block';
-        document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}`;
+        document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}${introducedLabel}`;
 
         document.getElementById('revealExplanationButton').style.display = 'block';
     };
@@ -407,6 +412,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('revealExplanationButton').onclick = async function () {
         const correctSpecies = document.getElementById('quizForm').dataset.correctSpecies;
         const commonName = document.getElementById('quizForm').dataset.commonName;
+        const nativeStatus = document.getElementById('quizForm').dataset.nativeStatus || 'native';
         const userGuess = document.getElementById('userGuess').value.trim();
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
@@ -419,9 +425,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	
 
+        const introducedLabelHtml = nativeStatus === 'introduced' ? '<strong>Introduced species</strong><br><br>' : '';
+
         document.getElementById('speciesName').innerHTML = `
         <strong>Common Name:</strong> ${commonName}<br>
         <strong>Scientific Name:</strong> <i>${correctSpecies}</i><br><br>
+        ${introducedLabelHtml}
         ${explanation}
     `;
     };
