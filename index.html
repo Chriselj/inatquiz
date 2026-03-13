@@ -491,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}${introducedLabel}`;
 
         document.getElementById('revealExplanationButton').style.display = 'block';
+        document.getElementById('nextSpeciesButton').style.display = 'block';
     };
 
     document.getElementById('revealExplanationButton').onclick = async function () {
@@ -518,7 +519,6 @@ document.addEventListener('DOMContentLoaded', function () {
         ${explanation}
     `;
 
-        document.getElementById('nextSpeciesButton').style.display = 'block';
     };
 
     document.getElementById('nextSpeciesButton').onclick = function () {
