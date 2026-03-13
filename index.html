@@ -76,11 +76,43 @@
             height: auto;
             cursor: pointer;
             border-radius: 10px;
-            transition: transform 0.3s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
         .image-container img:hover {
             transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(46, 59, 31, 0.2);
+        }
+
+        .status-message {
+            display: none;
+            margin: 12px auto;
+            padding: 10px 14px;
+            max-width: 700px;
+            border-radius: 6px;
+            font-weight: 600;
+            background-color: #f3f6ea;
+            border: 1px solid #c8d1b8;
+            color: #2e3b1f;
+        }
+
+        .status-message.error {
+            background-color: #faefec;
+            border-color: #d5a89d;
+            color: #8a3020;
+        }
+
+        #loadingStatus {
+            display: none;
+            margin-top: 8px;
+            color: #5c7633;
+            font-weight: bold;
+        }
+
+
+        #nextSpeciesButton {
+            display: none;
+            margin: 16px auto 0;
         }
 
         .attribution {
@@ -196,12 +228,15 @@
         </select>
         <input type="text" id="customPlace" name="customPlace" placeholder="Optional custom Place ID">
         <br><br>
-        <button type="submit">Fetch Observation</button>
+        <button type="submit">Start Quiz</button>
     </form>
+
+    <div id="formStatus" class="status-message" aria-live="polite"></div>
 
     <div id="loadingBar" style="display: none;">
         <div id="loadingProgress">0%</div>
     </div>
+    <p id="loadingStatus" aria-live="polite"></p>
 
     <div id="imagesContainer" style="display: none;">
         <div class="image-container">
@@ -228,6 +263,8 @@
         <button type="button" id="revealExplanationButton" style="display: none;">Reveal Explanation</button>
     </div>
 </form>
+
+    <button type="button" id="nextSpeciesButton">Next Species</button>
 
     <p id="speciesName" style="display: none;"></p>
 
@@ -268,12 +305,39 @@ document.addEventListener('DOMContentLoaded', function () {
         loadingProgress.innerText = progress + '%';
     }
 
+    function setLoadingStatus(message) {
+        const loadingStatus = document.getElementById('loadingStatus');
+        if (!message) {
+            loadingStatus.style.display = 'none';
+            loadingStatus.innerText = '';
+            return;
+        }
+        loadingStatus.style.display = 'block';
+        loadingStatus.innerText = message;
+    }
+
+    function showFormStatus(message, isError = false) {
+        const statusElement = document.getElementById('formStatus');
+        statusElement.innerText = message;
+        statusElement.style.display = 'block';
+        statusElement.classList.toggle('error', isError);
+    }
+
+    function hideFormStatus() {
+        const statusElement = document.getElementById('formStatus');
+        statusElement.style.display = 'none';
+        statusElement.innerText = '';
+        statusElement.classList.remove('error');
+    }
+
+
 	function clearQuizContent() {
-        	 document.getElementById('speciesName').innerHTML = '';
-       	 document.getElementById('revealExplanationButton').style.display = 'none';
-       	 document.getElementById('imagesContainer').style.display = 'none';
-       	 document.getElementById('speciesImage1').src = '';
-       	 document.getElementById('speciesImage2').src = '';
+         	 document.getElementById('speciesName').innerHTML = '';
+        	 document.getElementById('revealExplanationButton').style.display = 'none';
+        	 document.getElementById('nextSpeciesButton').style.display = 'none';
+        	 document.getElementById('imagesContainer').style.display = 'none';
+        	 document.getElementById('speciesImage1').src = '';
+        	 document.getElementById('speciesImage2').src = '';
        	 document.getElementById('speciesImage3').src = '';
        	 document.getElementById('credit1').innerHTML = '';
        	 document.getElementById('credit2').innerHTML = '';
@@ -317,6 +381,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('configForm').onsubmit = async function (event) {
         event.preventDefault();
 	clearQuizContent(); // Clear previous content
+        hideFormStatus();
+        setLoadingStatus('Finding species...');
         await updateLoadingBar(0);
 
         const selectedCategory = document.getElementById('category').value;
@@ -337,8 +403,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
         if (!randomPageUrl) {
-            alert('No observations found for the selected criteria.');
+            showFormStatus('No quiz items were found with those settings. Try another place or remove extra filters.', true);
             document.getElementById('loadingBar').style.display = 'none';
+            setLoadingStatus('');
             return;
         }
 
@@ -347,8 +414,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let observations = data.results;
 
         if (observations.length === 0) {
-            alert('No observations found for the selected criteria.');
+            showFormStatus('No observations matched this setup. Try another place or remove extra filters.', true);
             document.getElementById('loadingBar').style.display = 'none';
+            setLoadingStatus('');
             return;
         }
 
@@ -356,7 +424,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const observation = observations[0];
         const speciesId = observation.taxon.id;
 
+        setLoadingStatus('Loading photos...');
         const speciesUrl = await getRandomPageUrl(`https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc`);
+        if (!speciesUrl) {
+            showFormStatus('We found a species but could not find enough photos right now. Try another place or remove extra filters.', true);
+            document.getElementById('loadingBar').style.display = 'none';
+            setLoadingStatus('');
+            return;
+        }
         const speciesResponse = await fetch(speciesUrl);
         const speciesData = await speciesResponse.json();
 
@@ -368,6 +443,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         shuffleArray(speciesPhotos);
         speciesPhotos = speciesPhotos.slice(0, 3);
+
+        if (speciesPhotos.length === 0) {
+            showFormStatus('This species had no usable photos for the quiz. Try another place or remove extra filters.', true);
+            document.getElementById('loadingBar').style.display = 'none';
+            setLoadingStatus('');
+            return;
+        }
 
         await updateLoadingBar(60);
 
@@ -385,6 +467,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         await updateLoadingBar(80);
+        setLoadingStatus('Preparing quiz...');
         document.getElementById('imagesContainer').style.display = 'block';
         document.getElementById('quizForm').style.display = 'block';
         document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
@@ -394,6 +477,7 @@ document.addEventListener('DOMContentLoaded', function () {
         await updateLoadingBar(100);
         setTimeout(() => {
             document.getElementById('loadingBar').style.display = 'none';
+            setLoadingStatus('');
         }, 500);
     };
 
@@ -407,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('speciesName').innerText = `Common Name: ${commonName}\nScientific Name: ${correctSpecies}${introducedLabel}`;
 
         document.getElementById('revealExplanationButton').style.display = 'block';
+        document.getElementById('nextSpeciesButton').style.display = 'block';
     };
 
     document.getElementById('revealExplanationButton').onclick = async function () {
@@ -448,6 +533,11 @@ Task:
         ${introducedLabelHtml}
         ${explanation}
     `;
+
+    };
+
+    document.getElementById('nextSpeciesButton').onclick = function () {
+        document.getElementById('configForm').requestSubmit();
     };
 });
 
