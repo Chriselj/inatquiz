@@ -398,20 +398,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const { startDate, endDate } = getRandomDateRange();
         const shouldFetchNative = Math.random() < 0.9;
-        const nativeFilter = shouldFetchNative ? 'true' : 'false';
-        let baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}&native=${nativeFilter}`;
+        let useNativeSpecies = shouldFetchNative;
 
-        const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
-        if (!randomPageUrl) {
-            showFormStatus('No quiz items were found with those settings. Try another place or remove extra filters.', true);
-            document.getElementById('loadingBar').style.display = 'none';
-            setLoadingStatus('');
-            return;
+        async function fetchObservationsForNativeFilter(nativeFilter) {
+            const baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}&native=${nativeFilter}`;
+            const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
+
+            if (!randomPageUrl) {
+                return [];
+            }
+
+            const response = await fetch(randomPageUrl);
+            const data = await response.json();
+            return data.results || [];
         }
 
-        const response = await fetch(randomPageUrl);
-        const data = await response.json();
-        let observations = data.results;
+        let observations = await fetchObservationsForNativeFilter(useNativeSpecies ? 'true' : 'false');
+
+        if (!useNativeSpecies && observations.length === 0) {
+            console.warn('No introduced observations found for this setup. Falling back to native species.');
+            setLoadingStatus('No introduced species found. Falling back to native species...');
+            useNativeSpecies = true;
+            observations = await fetchObservationsForNativeFilter('true');
+        }
 
         if (observations.length === 0) {
             showFormStatus('No observations matched this setup. Try another place or remove extra filters.', true);
@@ -472,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('quizForm').style.display = 'block';
         document.getElementById('quizForm').dataset.correctSpecies = observation.taxon.name;
         document.getElementById('quizForm').dataset.commonName = observation.taxon.preferred_common_name || 'No common name available';
-        document.getElementById('quizForm').dataset.nativeStatus = shouldFetchNative ? 'native' : 'introduced';
+        document.getElementById('quizForm').dataset.nativeStatus = useNativeSpecies ? 'native' : 'introduced';
 
         await updateLoadingBar(100);
         setTimeout(() => {
