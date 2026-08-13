@@ -511,22 +511,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('speciesName').innerText = 'Fetching explanation...';
 
-        const prompt = `The user guessed "${userGuess}".
-Correct species (authoritative):
-- Common name: "${commonName}"
-- Scientific name: "${correctSpecies}"
-
-Important:
-- Treat the species above as ground truth.
-- Do not reinterpret, rename, or invent alternate species.
-- If unsure about a comparison detail, say so briefly instead of guessing.
-- Ignore spelling/punctuation errors in the user's guess.
-
-Task:
-- Explain whether the user's guess matches the correct species.
-- If different, compare key identification features.
-- If same, provide concise field marks for confirming this species.
-- Return HTML only for readability.`;
+        const prompt = `
+		User guess: "${userGuess}"
+		
+		Correct species (ground truth):
+		- Common: "${commonName}"
+		- Scientific: "${correctSpecies}"
+		
+		Evaluate the user's guess against the correct species.
+		
+		Rules:
+		- Treat the correct species as authoritative. Do not rename, reinterpret, or question it.
+		- Ignore spelling, capitalization, and punctuation errors.
+		- If the guess clearly refers to the correct species, say it is correct and give 2–4 useful field marks.
+		- If the guess identifies a meaningful broader group containing the species (e.g. "hawk" for Red-tailed Hawk), acknowledge that they are on the right track, give the specific identification, and provide 2–4 useful field marks.
+		- Otherwise, explain that the guess is incorrect and briefly compare the most useful distinguishing features.
+		- Focus on visible identification features. Do not invent details; if unsure, omit them.
+		- Be concise and encouraging.
+		
+		Return simple HTML only. No Markdown.
+		`;
         let explanation = await getAIExplanation(prompt);
 
 	// Inline cleaning of backticks and 'html' markers
