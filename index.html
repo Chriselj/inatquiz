@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant and Animal Knowledge Test</title>
     <style>
         /* General IRC-themed styling */
@@ -190,6 +191,83 @@
 
         .advanced-fields {
             margin-top: 8px;
+        }
+
+        /* Keep the quiz comfortable to use on phones without altering desktop layout. */
+        @media (max-width: 700px) {
+            html,
+            body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            body {
+                padding: 0 12px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            #configForm label,
+            #quizForm label,
+            .advanced-fields label {
+                display: block;
+                margin: 12px 0 4px;
+            }
+
+            #configForm select,
+            #configForm input[type="text"],
+            #quizForm input[type="text"] {
+                box-sizing: border-box;
+                width: 100%;
+                max-width: 420px;
+                margin: 4px auto;
+                font-size: 16px;
+            }
+
+            details {
+                box-sizing: border-box;
+                width: 100%;
+                max-width: 420px;
+                margin: 12px auto;
+            }
+
+            .image-container {
+                /* Override the inline display used when quiz images are revealed. */
+                display: block !important;
+                margin: 16px auto;
+            }
+
+            .image-container img {
+                width: 100%;
+                max-width: 420px;
+            }
+
+            button {
+                box-sizing: border-box;
+                width: 100%;
+                max-width: 420px;
+                min-height: 44px;
+                font-size: 16px;
+            }
+
+            .modal {
+                box-sizing: border-box;
+                padding: 48px 12px 12px;
+            }
+
+            .modal-content {
+                width: 100%;
+                max-width: none;
+                height: calc(100vh - 72px);
+                object-fit: contain;
+            }
+
+            .close {
+                top: 4px;
+                right: 14px;
+            }
         }
 
     </style>
