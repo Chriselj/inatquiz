@@ -490,8 +490,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function findSpeciesWithPhotos(speciesCandidates, placeId) {
-        shuffleArray(speciesCandidates);
-        for (const candidate of speciesCandidates.slice(0, 8)) {
+        const weightedCandidates = speciesCandidates.map(candidate => ({
+            candidate,
+            order: -Math.log(Math.random() || Number.MIN_VALUE) /
+                Math.sqrt(candidate.count || 1)
+        })).sort((a, b) => a.order - b.order);
+
+        for (const { candidate } of weightedCandidates.slice(0, 8)) {
             const taxon = candidate.taxon;
             if (!taxon?.id) continue;
 
