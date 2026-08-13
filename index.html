@@ -172,6 +172,26 @@
             margin-top: 20px;
         }
 
+        details {
+            width: fit-content;
+            margin: 10px auto;
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid #c8d1b8;
+            border-radius: 6px;
+            background-color: #f3f6ea;
+        }
+
+        summary {
+            color: #5c7633;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .advanced-fields {
+            margin-top: 8px;
+        }
+
     </style>
 </head>
 
@@ -206,9 +226,6 @@
             <option value="40151">Mammals</option>
         </select>
         <br>
-        <label for="taxonomy">Taxonomy ID (optional):</label>
-        <input type="text" id="taxonomy" name="taxonomy" placeholder="Optional custom Taxonomy ID">
-        <br>
         <label for="place">Place ID (default is Orange County, CA):</label>
         <select id="place" name="place">
             <optgroup label="Orange County, CA">
@@ -226,7 +243,16 @@
 	        <option value="210108">IRC Butterfly Enhancement Plots</option>
 	    </optgroup>
         </select>
-        <input type="text" id="customPlace" name="customPlace" placeholder="Optional custom Place ID">
+        <details>
+            <summary>Advanced Options</summary>
+            <div class="advanced-fields">
+                <label for="taxonomy">Taxonomy ID (optional):</label>
+                <input type="text" id="taxonomy" name="taxonomy" inputmode="numeric" placeholder="Optional custom Taxonomy ID">
+                <br>
+                <label for="customPlace">Place ID (optional):</label>
+                <input type="text" id="customPlace" name="customPlace" inputmode="numeric" placeholder="Optional custom Place ID">
+            </div>
+        </details>
         <br><br>
         <button type="submit">Start Quiz</button>
     </form>
@@ -342,6 +368,9 @@ document.addEventListener('DOMContentLoaded', function () {
        	 document.getElementById('credit1').innerHTML = '';
        	 document.getElementById('credit2').innerHTML = '';
       	  document.getElementById('credit3').innerHTML = '';
+             document.querySelectorAll('#imagesContainer .image-container').forEach(container => {
+                 container.style.display = 'none';
+             });
         	 document.getElementById('userGuess').value = ''; // Clear user input
      	}
 
@@ -353,29 +382,140 @@ document.addEventListener('DOMContentLoaded', function () {
     	    }
   	  });
 
-    function getRandomDateRange() {
-        const startYear = 2000;
-        const endYear = new Date().getFullYear();
-        const randomYear = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
-        const randomMonth = Math.floor(Math.random() * 12) + 1;
-        const randomDay = Math.floor(Math.random() * 28) + 1;
-        const startDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')}`;
-        const endDate = `${randomYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay + 30).padStart(2, '0')}`;
-        return { startDate, endDate };
+    const inaturalistRequestInterval = 1000;
+    let lastINaturalistRequestStartedAt = 0;
+    let inaturalistRequestQueue = Promise.resolve();
+
+    async function fetchINaturalist(path, params) {
+        const url = new URL(`https://api.inaturalist.org/v1/${path}`);
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== '' && value !== null && value !== undefined) {
+                url.searchParams.set(key, value);
+            }
+        });
+
+        const requestTurn = inaturalistRequestQueue.then(async () => {
+            const elapsed = Date.now() - lastINaturalistRequestStartedAt;
+            const delay = Math.max(0, inaturalistRequestInterval - elapsed);
+            if (delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+            lastINaturalistRequestStartedAt = Date.now();
+        });
+        // Queue only request start times; a slow response should not add an
+        // unnecessary delay once the one-second start interval has elapsed.
+        inaturalistRequestQueue = requestTurn.catch(() => {});
+        await requestTurn;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`iNaturalist request failed (${response.status})`);
+        }
+        return response.json();
     }
 
-    async function getRandomPageUrl(url, perPage = 50, maxPages = 50) {
-        const response = await fetch(url + '&per_page=1');
-        const data = await response.json();
-        const totalResults = data.total_results;
-        const totalPages = Math.min(Math.ceil(totalResults / perPage), maxPages);
-
+    async function fetchRandomSpeciesCandidates(taxonId, placeId, nativeFilter) {
+        const params = {
+            taxon_id: taxonId,
+            place_id: placeId,
+            quality_grade: 'research',
+            rank: 'species',
+            photos: 'true',
+            photo_license: 'cc-by-nc',
+            native: nativeFilter,
+            per_page: 1
+        };
+        const countData = await fetchINaturalist('observations/species_counts', params);
+        const perPage = 100;
+        // iNaturalist exposes at most 10,000 paginated results. Randomizing across
+        // that range avoids limiting the quiz to a short date window or first page.
+        const totalPages = Math.min(Math.ceil(countData.total_results / perPage), 100);
         if (totalPages === 0) {
-            return null;
+            return [];
         }
 
-        const randomPage = Math.floor(Math.random() * totalPages) + 1;
-        return url + `&per_page=${perPage}&page=${randomPage}`;
+        params.per_page = perPage;
+        params.page = Math.floor(Math.random() * totalPages) + 1;
+        const data = await fetchINaturalist('observations/species_counts', params);
+        return data.results || [];
+    }
+
+    function choosePhotos(observations) {
+        const candidates = observations.map(observation => ({
+            observationId: observation.id,
+            user: observation.user?.login || 'iNaturalist user',
+            photos: (observation.photos || [])
+                .filter(photo => photo.license_code === 'cc-by-nc' && photo.url)
+                .map(photo => ({
+                    url: photo.url.replace(/\/(square|small|medium|large|original)\./, '/large.'),
+                    user: observation.user?.login || 'iNaturalist user',
+                    observationId: observation.id
+                }))
+        })).filter(candidate => candidate.photos.length > 0);
+
+        shuffleArray(candidates);
+        candidates.forEach(candidate => shuffleArray(candidate.photos));
+
+        const selected = [];
+        const selectedObservations = new Set();
+        const selectedUsers = new Set();
+
+        // First favor distinct observations and observers.
+        for (const candidate of candidates) {
+            if (!selectedUsers.has(candidate.user)) {
+                selected.push(candidate.photos[0]);
+                selectedObservations.add(candidate.observationId);
+                selectedUsers.add(candidate.user);
+            }
+            if (selected.length === 3) return selected;
+        }
+
+        // Then fill from other observations, even when observers repeat.
+        for (const candidate of candidates) {
+            if (!selectedObservations.has(candidate.observationId)) {
+                selected.push(candidate.photos[0]);
+                selectedObservations.add(candidate.observationId);
+            }
+            if (selected.length === 3) return selected;
+        }
+
+        // Only reuse observations when fewer than three suitable ones exist.
+        for (const candidate of candidates) {
+            for (const photo of candidate.photos.slice(1)) {
+                selected.push(photo);
+                if (selected.length === 3) return selected;
+            }
+        }
+        return selected;
+    }
+
+    async function findSpeciesWithPhotos(speciesCandidates, placeId) {
+        shuffleArray(speciesCandidates);
+        for (const candidate of speciesCandidates.slice(0, 8)) {
+            const taxon = candidate.taxon;
+            if (!taxon?.id) continue;
+
+            const perPage = 30;
+            const totalPages = Math.min(Math.ceil((candidate.count || 1) / perPage), 334);
+
+            const photoData = await fetchINaturalist('observations', {
+                taxon_id: taxon.id,
+                place_id: placeId,
+                quality_grade: 'research',
+                rank: 'species',
+                photos: 'true',
+                photo_license: 'cc-by-nc',
+                per_page: perPage,
+                // The observations endpoint does not support random ordering.
+                // Randomize the page, then shuffle eligible photos client-side.
+                page: Math.floor(Math.random() * totalPages) + 1
+            });
+            const photos = choosePhotos(photoData.results || []);
+            if (photos.length > 0) {
+                return { observation: { taxon }, photos };
+            }
+        }
+        return null;
     }
 
     document.getElementById('configForm').onsubmit = async function (event) {
@@ -396,84 +536,53 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Taxon ID used:', taxonId);
         console.log('Place ID:', placeId);
 
-        const { startDate, endDate } = getRandomDateRange();
         const shouldFetchNative = Math.random() < 0.9;
         let useNativeSpecies = shouldFetchNative;
 
-        async function fetchObservationsForNativeFilter(nativeFilter) {
-            const baseUrl = `https://api.inaturalist.org/v1/observations?taxon_id=${taxonId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc&observed_on_after=${startDate}&observed_on_before=${endDate}&native=${nativeFilter}`;
-            const randomPageUrl = await getRandomPageUrl(baseUrl, 50, 50);
+        try {
+            let speciesCandidates = await fetchRandomSpeciesCandidates(
+                taxonId,
+                placeId,
+                useNativeSpecies ? 'true' : 'false'
+            );
 
-            if (!randomPageUrl) {
-                return [];
+            if (useNativeSpecies && speciesCandidates.length === 0) {
+                throw new Error('No species matched this setup. Try another place or remove extra filters.');
             }
 
-            const response = await fetch(randomPageUrl);
-            const data = await response.json();
-            return data.results || [];
-        }
+            setLoadingStatus('Loading photos...');
+            // Try several species from the randomized page in case photos have since
+            // been removed or relicensed between the species-count and photo calls.
+            let selection = await findSpeciesWithPhotos(speciesCandidates, placeId);
 
-        let observations = await fetchObservationsForNativeFilter(useNativeSpecies ? 'true' : 'false');
+            if (!useNativeSpecies && !selection) {
+                console.warn('No introduced species with usable photos found. Falling back to native species.');
+                setLoadingStatus('No introduced species found. Falling back to native species...');
+                useNativeSpecies = true;
+                speciesCandidates = await fetchRandomSpeciesCandidates(taxonId, placeId, 'true');
+                selection = await findSpeciesWithPhotos(speciesCandidates, placeId);
+            }
 
-        if (!useNativeSpecies && observations.length === 0) {
-            console.warn('No introduced observations found for this setup. Falling back to native species.');
-            setLoadingStatus('No introduced species found. Falling back to native species...');
-            useNativeSpecies = true;
-            observations = await fetchObservationsForNativeFilter('true');
-        }
-
-        if (observations.length === 0) {
-            showFormStatus('No observations matched this setup. Try another place or remove extra filters.', true);
-            document.getElementById('loadingBar').style.display = 'none';
-            setLoadingStatus('');
-            return;
-        }
-
-        shuffleArray(observations);
-        const observation = observations[0];
-        const speciesId = observation.taxon.id;
-
-        setLoadingStatus('Loading photos...');
-        const speciesUrl = await getRandomPageUrl(`https://api.inaturalist.org/v1/observations?taxon_id=${speciesId}&place_id=${placeId}&quality_grade=research&rank=species&photo_license=cc-by-nc`);
-        if (!speciesUrl) {
-            showFormStatus('We found a species but could not find enough photos right now. Try another place or remove extra filters.', true);
-            document.getElementById('loadingBar').style.display = 'none';
-            setLoadingStatus('');
-            return;
-        }
-        const speciesResponse = await fetch(speciesUrl);
-        const speciesData = await speciesResponse.json();
-
-        let speciesPhotos = speciesData.results.flatMap(obs => obs.photos.map(photo => ({
-            url: photo.url.replace('square', 'original'),
-            user: obs.user.login,
-            observationId: obs.id
-        })));
-
-        shuffleArray(speciesPhotos);
-        speciesPhotos = speciesPhotos.slice(0, 3);
-
-        if (speciesPhotos.length === 0) {
-            showFormStatus('This species had no usable photos for the quiz. Try another place or remove extra filters.', true);
-            document.getElementById('loadingBar').style.display = 'none';
-            setLoadingStatus('');
-            return;
-        }
+            if (!selection) {
+                throw new Error('Species were found, but no usable CC BY-NC photos are available right now. Please try again.');
+            }
+            const { observation, photos: speciesPhotos } = selection;
 
         await updateLoadingBar(60);
 
-        if (speciesPhotos.length > 0) {
-            document.getElementById('speciesImage1').src = speciesPhotos[0].url;
-            document.getElementById('credit1').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[0].observationId}" target="_blank">${speciesPhotos[0].user}</a>`;
-        }
-        if (speciesPhotos[1]) {
-            document.getElementById('speciesImage2').src = speciesPhotos[1].url;
-            document.getElementById('credit2').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[1].observationId}" target="_blank">${speciesPhotos[1].user}</a>`;
-        }
-        if (speciesPhotos[2]) {
-            document.getElementById('speciesImage3').src = speciesPhotos[2].url;
-            document.getElementById('credit3').innerHTML = `Photo by: <a href="https://www.inaturalist.org/observations/${speciesPhotos[2].observationId}" target="_blank">${speciesPhotos[2].user}</a>`;
-        }
+        speciesPhotos.forEach((photo, index) => {
+            const image = document.getElementById(`speciesImage${index + 1}`);
+            const credit = document.getElementById(`credit${index + 1}`);
+            const link = document.createElement('a');
+            image.src = photo.url;
+            image.parentElement.style.display = 'inline-block';
+            credit.textContent = 'Photo by: ';
+            link.href = `https://www.inaturalist.org/observations/${photo.observationId}`;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = photo.user;
+            credit.appendChild(link);
+        });
 
         await updateLoadingBar(80);
         setLoadingStatus('Preparing quiz...');
@@ -488,6 +597,12 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('loadingBar').style.display = 'none';
             setLoadingStatus('');
         }, 500);
+        } catch (error) {
+            console.error('Unable to prepare quiz:', error);
+            showFormStatus(error.message || 'Unable to prepare the quiz right now. Please try again.', true);
+            document.getElementById('loadingBar').style.display = 'none';
+            setLoadingStatus('');
+        }
     };
 
     document.getElementById('submitGuessButton').onclick = function () {
